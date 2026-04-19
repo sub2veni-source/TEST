@@ -1,11 +1,11 @@
 # HEAD SHA
 
-현재 main HEAD: `b19dcd7`
+현재 main HEAD: `6c1deed`
 
 ## 파일 접근 base URL
 
 ```
-https://raw.githubusercontent.com/sub2veni-source/test/b19dcd7/
+https://raw.githubusercontent.com/sub2veni-source/test/6c1deed/
 ```
 
 ## 갱신 이력
@@ -15,6 +15,7 @@ https://raw.githubusercontent.com/sub2veni-source/test/b19dcd7/
 | 2026.04.19 | `f7d345e` | 초기값 — PR #10 병합 시점 (250 월별 + 710 경원 통일) |
 | 2026.04.19 | `06029c3` | PR #11 병합 — 000_HEAD 자체 신설 |
 | 2026.04.19 | `b19dcd7` | PR #12 병합 — INDEX 키워드 + 역인덱스 추가 |
+| 2026.04.19 | `6c1deed` | PR #13 병합 — 역인덱스 인물별 합류 서사에 511·540 병기 |
 
 ## 규칙
 
