@@ -23,8 +23,16 @@
 ## 파일 접근 방법
 
 - 레포는 **public** 상태
-- 기본 Raw URL: `https://raw.githubusercontent.com/sub2veni-source/test/main/<파일명>`
-- 파일 변경(생성·수정·삭제)은 **Claude Code에 위임** (GitHub MCP 직접 접근)
+- **세션 시작 시 `000_HEAD.md`(main URL)를 먼저 읽어 현재 SHA 확인**
+  ```
+  https://raw.githubusercontent.com/sub2veni-source/test/main/000_HEAD.md
+  ```
+- 이후 파일 접근은 `000_HEAD.md`의 SHA 기반 URL 사용:
+  ```
+  https://raw.githubusercontent.com/sub2veni-source/test/<SHA>/<파일명>
+  ```
+- Claude Code는 커밋 완료 시마다 `000_HEAD.md`의 SHA를 **새 머지 커밋 SHA**로 업데이트한다.
+- 파일 변경(생성·수정·삭제)은 **Claude Code에 위임** (GitHub MCP 직접 접근).
 
 ### ⚠️ CDN 캐시 이슈 대응
 
