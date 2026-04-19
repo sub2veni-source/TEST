@@ -62,7 +62,7 @@ GitHub raw.githubusercontent.com은 CDN 캐시 TTL(약 5분)이 있어, `main` U
 |---|---|
 | 전체 파일 구조 | `000_INDEX.md` |
 | K 생애 | `220_K_생애.md` |
-| K 자산 수치 | `250_K_자산.xlsx` |
+| K 자산 수치 | 프로젝트 파일 `250_K_자산_v2_1.xlsx` (정본) + `230_K_자산_현황.md` / `240_K_자산_이력.md` 보조 참조 |
 | 연구소 | `500_연구소_INDEX.md` |
 | SEVEN Mind | `530_SEVEN_Mind.md` |
 | 인물 합류 연도 | 각 인물 서사 파일 (320~450, 511~540 계열) |
@@ -93,6 +93,8 @@ GitHub raw.githubusercontent.com은 CDN 캐시 TTL(약 5분)이 있어, `main` U
 - 710 파일의 Scene Index가 날짜·D+n 기준으로 정리되어 있으니 이를 참조한다.
 - **2026.07 이후**: $101.3T 완료 수치 기준으로 국제편 전환.
 - **국내편 집필 중 자산 수치를 서사에 직접 언급하지 않는다** — 710 파일 작성 규칙 준수.
+- **xlsx 파일은 GitHub Raw URL로 읽기 불가** — Claude 프로젝트 파일에 별도 업로드되어 있음 (`250_K_자산_v2_1.xlsx`)
+- 자산 조회 시: **프로젝트 파일 xlsx (수치 정본) + `710_100경_EQUILIBRIUM.md` (날짜별 이벤트)** 병행 참조
 
 ---
 
