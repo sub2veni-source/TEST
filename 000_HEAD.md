@@ -1,11 +1,11 @@
 # HEAD SHA
 
-현재 main HEAD: `f7d345e`
+현재 main HEAD: `06029c3`
 
 ## 파일 접근 base URL
 
 ```
-https://raw.githubusercontent.com/sub2veni-source/test/f7d345e/
+https://raw.githubusercontent.com/sub2veni-source/test/06029c3/
 ```
 
 ## 갱신 이력
@@ -13,6 +13,7 @@ https://raw.githubusercontent.com/sub2veni-source/test/f7d345e/
 | 시점 | 갱신된 SHA | 커밋 메시지 |
 |---|---|---|
 | 2026.04.19 | `f7d345e` | 초기값 — PR #10 병합 시점 (250 월별 + 710 경원 통일) |
+| 2026.04.19 | `06029c3` | PR #11 병합 — 000_HEAD 자체 신설 |
 
 ## 규칙
 
