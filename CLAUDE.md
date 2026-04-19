@@ -23,8 +23,36 @@
 ## 파일 접근 방법
 
 - 레포는 **public** 상태
-- Raw URL 직접 fetch 가능: `https://raw.githubusercontent.com/sub2veni-source/test/main/<파일명>`
+- 기본 Raw URL: `https://raw.githubusercontent.com/sub2veni-source/test/main/<파일명>`
 - 파일 변경(생성·수정·삭제)은 **Claude Code에 위임** (GitHub MCP 직접 접근)
+
+### ⚠️ CDN 캐시 이슈 대응
+
+GitHub raw.githubusercontent.com은 CDN 캐시 TTL(약 5분)이 있어, `main` URL이 **구버전을 반환할 수 있음**.
+
+**증상**: 최근 병합된 커밋인데도 이전 내용이 보임 / 파일 이름 변경 후 구 파일명 내용이 나옴.
+
+**해결법 (우선순위 순)**:
+
+1. **최신 커밋 SHA 기반 URL 사용** (가장 확실):
+   ```
+   https://raw.githubusercontent.com/sub2veni-source/test/<commit_sha>/<파일명>
+   ```
+   최신 SHA는 Claude Code에 문의 또는 GitHub UI의 커밋 목록에서 확인. SHA는 7자리 단축형도 OK (`f9bc45b`).
+
+2. **쿼리 파라미터 추가** (일부 CDN에서만 동작):
+   ```
+   https://raw.githubusercontent.com/sub2veni-source/test/main/<파일명>?t=<타임스탬프>
+   ```
+   ※ GitHub CDN은 이 방식을 무시할 수 있음. 확실하지 않으면 1번 사용.
+
+3. **시간 기다리기**: 5~10분 후 main URL이 자동 갱신됨.
+
+**한글 파일명**: URL 인코딩은 대부분 web fetch 도구가 자동 처리. 그래도 실패하면 수동 인코딩:
+```
+540_마르크_뒤부아_전략기술.md
+→ 540_%EB%A7%88%EB%A5%B4%ED%81%AC_%EB%92%A4%EB%B6%80%EC%95%84_%EC%A0%84%EB%9E%B5%EA%B8%B0%EC%88%A0.md
+```
 
 ---
 
