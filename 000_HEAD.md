@@ -1,11 +1,11 @@
 # HEAD SHA
 
-현재 main HEAD: `1e306ca`
+현재 main HEAD: `34285bd`
 
 ## 파일 접근 base URL
 
 ```
-https://raw.githubusercontent.com/sub2veni-source/test/1e306ca/
+https://raw.githubusercontent.com/sub2veni-source/test/34285bd/
 ```
 
 ## 갱신 이력
@@ -17,6 +17,7 @@ https://raw.githubusercontent.com/sub2veni-source/test/1e306ca/
 | 2026.04.19 | `b19dcd7` | PR #12 병합 — INDEX 키워드 + 역인덱스 추가 |
 | 2026.04.19 | `6c1deed` | PR #13 병합 — 역인덱스 인물별 합류 서사에 511·540 병기 |
 | 2026.04.19 | `1e306ca` | 431/432 신규 추가 · 600 OP 운영 체제 업데이트 · CLAUDE.md 파일 작업 원칙 · INDEX 431/432 항목 추가 |
+| 2026.04.19 | `34285bd` | 600_OP파운데이션.md 최종 확정 — 에바 입양 서술 보완 · 미작성 항목 완료 처리 |
 
 ## 규칙
 
