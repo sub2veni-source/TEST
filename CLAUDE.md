@@ -164,6 +164,14 @@ GitHub raw.githubusercontent.com은 CDN 캐시 TTL(약 5분)이 있어, `main` U
 
 ---
 
+## 파일 작업 원칙
+
+- 신규 파일 생성 시 첨부 파일은 raw 내용 그대로 커밋한다
+- 파일 내용 재작성 금지
+- 긴 md 파일 신규 생성 시 사용자가 코드블록으로 전달한 내용을 그대로 Write한다
+
+---
+
 ## 알려진 충돌
 
 - 현재 상태: `001_CONFLICTS.md` 참조
