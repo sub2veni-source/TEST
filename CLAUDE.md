@@ -104,19 +104,38 @@ GitHub raw.githubusercontent.com은 CDN 캐시 TTL(약 5분)이 있어, `main` U
 - PR의 `mergeable_state: clean` (충돌 없음)
 - 리뷰 코멘트 중 미해결 이슈 없음
 
-**자율 병합 이후 보고 포맷**:
+**자율 병합 이후 보고 포맷** (URL 포함 필수):
 
 ```
-✅ PR #X 병합 완료 (커밋 SHA: xxxxxxx)
+✅ PR #X 병합 완료 (merge commit: yyyyyyy, feature commit: xxxxxxx)
 
-수정 파일 및 내용:
-- 파일명: XXX.md
+수정 파일:
+- 파일명: 340_마이클.md
+  URL: https://raw.githubusercontent.com/sub2veni-source/test/yyyyyyy/340_%EB%A7%88%EC%9D%B4%ED%81%B4.md
   위치: ## 섹션명 > 항목
   수정 전: "..."
   수정 후: "..."
+
+- 파일명: ...
+  URL: ...
+  ...
 ```
 
-claude.ai는 이 SHA 커밋 기반 URL로 직접 변경 내용 확인 가능.
+### URL 작성 규칙
+
+- **베이스**: `https://raw.githubusercontent.com/sub2veni-source/test/<SHA>/<encoded_filename>`
+- **SHA**: 병합 후 main에 반영된 **merge commit SHA** 사용 (feature commit도 가능)
+- **파일명 URL 인코딩**: 한글 파일명은 **percent-encoding 필수**. Python `urllib.parse.quote()` 결과 사용.
+  - 예: `340_마이클.md` → `340_%EB%A7%88%EC%9D%B4%ED%81%B4.md`
+- **이유**: claude.ai는 CDN 캐시로 `main` URL 접근 시 구버전을 받으며, 자체 조합한 URL은 보안 정책상 막힘. SHA URL을 **Claude Code가 직접 전달**해야만 접근 가능.
+
+### 보고 예외 조항
+
+보고 포맷을 일부 생략해도 되는 경우:
+- 상태 표기만 수정하는 문서 커밋 (예: CONFLICTS.md 상태 ✅ 변경)
+- 1줄 미만의 trivial change
+
+그러나 **내용 수정이 있는 모든 파일**은 URL + 수정 전/후 필수.
 
 **예외 — 반드시 사용자 승인 필요**:
 - 파일 대량 삭제
