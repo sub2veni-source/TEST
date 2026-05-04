@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>3-Agent 토론 채팅</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f4f6fb;
+      --panel: #ffffff;
+      --text: #1f2937;
+      --border: #d1d5db;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --danger: #dc2626;
+      --danger-hover: #b91c1c;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: "Pretendard", "Noto Sans KR", system-ui, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .app {
+      width: min(920px, 100%);
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+    }
+
+    header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      background: #eff6ff;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.2rem;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 10px;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    input[type="text"] {
+      padding: 11px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-size: 0.95rem;
+      width: 100%;
+    }
+
+    button {
+      border: none;
+      border-radius: 8px;
+      padding: 11px 14px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      font-weight: 600;
+      color: white;
+    }
+
+    #startButton {
+      background: var(--primary);
+    }
+
+    #startButton:hover:enabled {
+      background: var(--primary-hover);
+    }
+
+    #stopButton {
+      background: var(--danger);
+    }
+
+    #stopButton:hover:enabled {
+      background: var(--danger-hover);
+    }
+
+    button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    #chat {
+      height: 500px;
+      overflow-y: auto;
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: linear-gradient(180deg, #ffffff 0%, #f9fafb 100%);
+    }
+
+    .message {
+      padding: 11px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      max-width: 85%;
+      background: #fff;
+      line-height: 1.45;
+      white-space: pre-wrap;
+    }
+
+    .system {
+      align-self: center;
+      text-align: center;
+      font-size: 0.88rem;
+      color: #4b5563;
+      background: #eef2ff;
+      border-color: #c7d2fe;
+      max-width: 100%;
+    }
+
+    .agent-1 { align-self: flex-start; border-left: 4px solid #0ea5e9; }
+    .agent-2 { align-self: flex-end; border-left: 4px solid #a855f7; }
+    .agent-3 { align-self: flex-start; border-left: 4px solid #22c55e; }
+
+    .name {
+      display: block;
+      font-weight: 700;
+      margin-bottom: 4px;
+      font-size: 0.86rem;
+      color: #374151;
+    }
+
+    .status {
+      font-size: 0.87rem;
+      padding: 10px 20px 16px;
+      color: #4b5563;
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header>
+      <h1>🤖 3명의 에이전트 토론 채팅</h1>
+    </header>
+
+    <section class="controls">
+      <input id="topicInput" type="text" placeholder="토론 주제를 입력하세요. 예) 원격근무의 장단점" />
+      <button id="startButton">토론 시작</button>
+      <button id="stopButton" disabled>중단</button>
+    </section>
+
+    <section id="chat" aria-live="polite"></section>
+    <div id="status" class="status">대기 중</div>
+  </main>
+
+  <script>
+    const agents = [
+      {
+        name: "에이전트 A (분석가)",
+        className: "agent-1",
+        openers: ["핵심 질문부터 정리해볼게요.", "먼저 전제를 맞추고 시작하죠.", "문제를 구조적으로 보겠습니다."],
+        connectors: ["데이터 관점에서 보면", "리스크를 나눠 보면", "실행 가능성을 따지면"],
+      },
+      {
+        name: "에이전트 B (현실주의자)",
+        className: "agent-2",
+        openers: ["현장에서 보면 조금 달라요.", "좋은 방향이지만 현실 제약이 있죠.", "실무에서 자주 부딪히는 지점은"],
+        connectors: ["비용/시간 관점에선", "인력 운영 측면에선", "사용자 반응을 보면"],
+      },
+      {
+        name: "에이전트 C (창의가)",
+        className: "agent-3",
+        openers: ["좀 더 과감하게 생각해보면", "대안을 섞으면 더 좋아질 수 있어요.", "저는 다른 접근을 제안할게요."],
+        connectors: ["실험적으로는", "협업 구조를 바꾸면", "경험 설계를 바꾸면"],
+      },
+    ];
+
+    const outcomes = [
+      "단기 실험 + 장기 정책으로 나누는 전략이 좋아 보입니다.",
+      "이해관계자 간 합의 기준을 먼저 정의해야 합니다.",
+      "지표를 명확히 잡아야 논쟁이 소모전이 되지 않습니다.",
+      "작게 시작해 검증한 뒤 단계적으로 확장하는 것이 안전합니다.",
+    ];
+
+    const topicInput = document.getElementById("topicInput");
+    const startButton = document.getElementById("startButton");
+    const stopButton = document.getElementById("stopButton");
+    const chat = document.getElementById("chat");
+    const status = document.getElementById("status");
+
+    let isRunning = false;
+    let loopTimer = null;
+    let round = 0;
+
+    function pick(arr, seed) {
+      return arr[seed % arr.length];
+    }
+
+    function addMessage(content, className = "system", name = "") {
+      const item = document.createElement("article");
+      item.className = `message ${className}`;
+
+      if (name) {
+        const title = document.createElement("span");
+        title.className = "name";
+        title.textContent = name;
+        item.appendChild(title);
+      }
+
+      const body = document.createElement("span");
+      body.textContent = content;
+      item.appendChild(body);
+
+      chat.appendChild(item);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    function buildAgentMessage(agent, topic, index) {
+      const opener = pick(agent.openers, round + index);
+      const connector = pick(agent.connectors, round + index * 2);
+      const outcome = pick(outcomes, round + index * 3);
+      return `${opener}\n주제: "${topic}"\n${connector} ${outcome}`;
+    }
+
+    function setRunningState(running) {
+      isRunning = running;
+      startButton.disabled = running;
+      stopButton.disabled = !running;
+      topicInput.disabled = running;
+      status.textContent = running ? "토론 진행 중..." : "대기 중";
+    }
+
+    function stopDiscussion(reason = "토론이 중단되었습니다.") {
+      if (loopTimer) {
+        clearTimeout(loopTimer);
+        loopTimer = null;
+      }
+      if (isRunning) {
+        addMessage(reason, "system");
+      }
+      setRunningState(false);
+    }
+
+    function runRound(topic) {
+      if (!isRunning) return;
+
+      const turn = round % agents.length;
+      const currentAgent = agents[turn];
+      const message = buildAgentMessage(currentAgent, topic, turn);
+      addMessage(message, currentAgent.className, currentAgent.name);
+      round += 1;
+
+      if (round >= 15) {
+        stopDiscussion("최대 15턴 토론이 완료되었습니다.");
+        return;
+      }
+
+      loopTimer = setTimeout(() => runRound(topic), 1200);
+    }
+
+    startButton.addEventListener("click", () => {
+      const topic = topicInput.value.trim();
+      if (!topic) {
+        addMessage("주제를 먼저 입력해 주세요.", "system");
+        topicInput.focus();
+        return;
+      }
+
+      chat.innerHTML = "";
+      round = 0;
+      addMessage(`토론 주제: ${topic}`, "system");
+      setRunningState(true);
+      runRound(topic);
+    });
+
+    stopButton.addEventListener("click", () => {
+      stopDiscussion("사용자가 토론을 중단했습니다.");
+    });
+  </script>
+</body>
+</html>
