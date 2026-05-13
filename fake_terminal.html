@@ -14,7 +14,7 @@
   #wrap {
     display: grid;
     grid-template-columns: 1.5fr 1fr 1.1fr 1fr;
-    grid-template-rows: 28px 1fr 1fr 1fr 120px;
+    grid-template-rows: 28px 1fr 1fr 1fr 170px;
     height: 100vh;
     gap: 2px;
     background: #0a0a0a;
@@ -265,10 +265,10 @@ function pickMode(){
 }
 function mainDelay(){
   switch(mode){
-    case "idle":   return 380 + Math.random()*420;
-    case "normal": return 120 + Math.random()*180;
-    case "burst":  return 35  + Math.random()*70;
-    case "spike":  return 12  + Math.random()*28;
+    case "idle":   return 760 + Math.random()*840;
+    case "normal": return 240 + Math.random()*360;
+    case "burst":  return 70  + Math.random()*140;
+    case "spike":  return 24  + Math.random()*56;
   }
 }
 
@@ -365,7 +365,7 @@ function graphTick(){
   lat = Math.max(4, Math.min(220, lat + (Math.random()-0.5)*8 + (mode==="spike"?12:0)));
   push(aumHist,aum); push(latHist,lat);
   graphArea.innerHTML = '';
-  append(graphArea, `<span class="key">AUM</span>  <span class="num">${aum.toFixed(4)}</span>경 KRW`);
+  append(graphArea, `<span class="key">AUM</span>  <span class="num">${aum.toFixed(4)}</span>B USD`);
   append(graphArea, `<span class="ok">${spark(aumHist)}</span>`);
   append(graphArea, `<span class="dim">────────────────────────────────────</span>`);
   const lc = lat<40 ? "ok" : lat<100 ? "warn" : "err";
@@ -447,13 +447,13 @@ function nortonTick(){
 // ===== DOS PROMPT (auto-typing) =====
 const DOS_COMMANDS = [
   ["dir /b *.bin",          ["WHITMORE.BIN","CHARLIE.BIN","LEEJC.BIN","PARK.BIN","MICHAEL.BIN"]],
-  ["type holdings.idx",     ["KR_REAL_ESTATE   2.34 조","US_EQUITIES      4.12 조","CRYPTO_COLD      1.89 조","FX_RESERVE       0.78 조","DERIVATIVES      5.94 조"]],
+  ["type holdings.idx",     ["REAL_ESTATE      2.34B","US_EQUITIES      4.12B","CRYPTO_COLD      1.89B","FX_RESERVE       0.78B","DERIVATIVES      5.94B"]],
   ["ping seven-core",       ["Pinging seven-core [10.7.0.1] with 32 bytes:","Reply from 10.7.0.1: bytes=32 time=4ms TTL=64","Reply from 10.7.0.1: bytes=32 time=3ms TTL=64","Reply from 10.7.0.1: bytes=32 time=5ms TTL=64"]],
   ["mem",                   ["655,360 bytes total conventional memory","613,408 bytes available","Largest executable program: 612,288 bytes","16,777,216 bytes total contiguous extended memory"]],
   ["chkdsk c:",             ["Volume K_OPS    created 03-21-26 02:14a","2,147,483,648 bytes total disk space","   12,582,912 bytes in 31 directories","1,892,341,760 bytes in 4,231 user files","  242,558,976 bytes available on disk"]],
   ["copy vault\\*.enc a:",  ["IDENTITY_KEYCHAIN.ENC","HEDGE_SIGNING.ENC","MASTER_SEED.ENC","        3 file(s) copied"]],
   ["scan /full",            ["Scanning C:\\K_OPS ...","No threats found.","Scan completed in 4.21 sec."]],
-  ["equilib status",        ["PHASE-2  47.3% complete","AGENTS    9 online","AUM      15.0234 경 KRW","NEXT EVENT: 2026-06-12  KR-ARC close"]]
+  ["equilib status",        ["PHASE-2  47.3% complete","AGENTS    9 online","AUM      15.0234 B USD","NEXT EVENT: 2026-06-12  ARC close"]]
 ];
 let dosBuffer = [];
 async function dosTypeCmd(cmd, out){
@@ -466,13 +466,13 @@ async function dosTypeCmd(cmd, out){
   const cur  = line.querySelector('.dos-cur');
   for(const ch of cmd){
     span.textContent += ch;
-    await sleep(30 + Math.random()*60);
+    await sleep(60 + Math.random()*120);
   }
   cur.remove();
   // print output
   for(const o of out){
     append(dos, `<span class="dos-w">${o}</span>`, 80);
-    await sleep(60 + Math.random()*120);
+    await sleep(120 + Math.random()*240);
   }
   append(dos, "", 80);
 }
@@ -483,7 +483,7 @@ async function dosLoop(){
   append(dos, `<span class="dos-w">(C)Copyright Microsoft Corp 1981-1994.</span>`);
   append(dos, "");
   while(true){
-    await sleep(800 + Math.random()*1800);
+    await sleep(1600 + Math.random()*3600);
     const [cmd, out] = pick(DOS_COMMANDS);
     await dosTypeCmd(cmd, out);
   }
@@ -513,15 +513,22 @@ function hexTick(){
 }
 
 // ===== BOTTOM STATUS =====
-let progress = 0;
+let progress = 0, arcProg = 0, idxProg = 0;
+function makeBar(pct, color){
+  const n = Math.floor(pct/2.5);
+  return `[<span class="${color}">${"█".repeat(n)}${"░".repeat(40-n)}</span>] <span class="num">${pct.toFixed(1)}%</span>`;
+}
 function statusLine(){
-  progress = (progress + Math.random()*1.2) % 100;
-  const bar = "█".repeat(Math.floor(progress/2.5)) + "░".repeat(40 - Math.floor(progress/2.5));
+  progress = (progress + Math.random()*0.6) % 100;
+  arcProg  = (arcProg  + Math.random()*1.4) % 100;
+  idxProg  = (idxProg  + Math.random()*0.3) % 100;
   const phase = progress<25?"PHASE-1":progress<55?"PHASE-2":progress<80?"PHASE-3":"PHASE-4";
   const modeColor = mode==="spike" ? "err" : mode==="burst" ? "warn" : mode==="idle" ? "dim" : "ok";
   status.innerHTML =
-    `EQUILIBRIUM ${phase}  [<span class="ok">${bar}</span>] <span class="num">${progress.toFixed(1)}%</span>\n` +
-    `AUM <span class="num">${aum.toFixed(4)}경 KRW</span>   LAT <span class="num">${lat.toFixed(0)}ms</span>   ` +
+    `EQUILIBRIUM ${phase}  ${makeBar(progress,"ok")}\n` +
+    `ARC SYNC            ${makeBar(arcProg,"key")}\n` +
+    `INDEX REBUILD       ${makeBar(idxProg,"warn")}\n` +
+    `AUM <span class="num">${aum.toFixed(4)}B USD</span>   LAT <span class="num">${lat.toFixed(0)}ms</span>   ` +
     `AGENTS <span class="ok">${AGENTS.length} online</span>   MODE <span class="${modeColor}">${mode.toUpperCase()}</span>   ` +
     `THREATS <span class="ok">0</span>   <span class="blink">●</span> LIVE`;
 }
@@ -555,13 +562,13 @@ function mainLoop(){
 mainLoop();
 dosLoop();
 
-setInterval(sideTick, 600);
-setInterval(graphTick, 350);
-setInterval(mapTick, 1400);
-setInterval(nortonTick, 700);
-setInterval(hexTick, 220);
-setInterval(statusLine, 220);
-setInterval(tickClock, 500);
+setInterval(sideTick, 1200);
+setInterval(graphTick, 700);
+setInterval(mapTick, 2800);
+setInterval(nortonTick, 1400);
+setInterval(hexTick, 440);
+setInterval(statusLine, 440);
+setInterval(tickClock, 1000);
 tickClock();
 </script>
 </body>
