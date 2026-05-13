@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <title>SEVEN // Operations Console</title>
@@ -13,14 +13,14 @@
   }
   #wrap {
     display: grid;
-    grid-template-columns: 1.5fr 1fr 1.1fr 1fr;
-    grid-template-rows: 28px 1fr 1fr 1fr 170px;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 28px 1fr 1fr;
     height: 100vh;
     gap: 2px;
     background: #0a0a0a;
   }
   .bar {
-    grid-column: 1 / 5;
+    grid-column: 1 / 3;
     background: linear-gradient(90deg,#001a0d,#000);
     color: #6cff6c;
     font-size: 12px;
@@ -36,7 +36,7 @@
     position: relative;
     padding: 8px 10px;
     font-size: 12px;
-    line-height: 1.35;
+    line-height: 1.4;
     white-space: pre;
   }
   .panel h3 {
@@ -48,58 +48,34 @@
     padding-bottom: 3px;
     display: flex; justify-content: space-between;
   }
-  /* layout */
-  #main-panel   { grid-column: 1 / 2; grid-row: 2 / 4; }
-  #side-panel   { grid-column: 2 / 3; grid-row: 2 / 3; }
-  #norton-panel { grid-column: 3 / 4; grid-row: 2 / 4; }
-  #stack-panel  { grid-column: 4 / 5; grid-row: 2 / 3; }
-  #graph-panel  { grid-column: 2 / 3; grid-row: 3 / 4; }
-  #map-panel    { grid-column: 4 / 5; grid-row: 3 / 4; }
-  #dos-panel    { grid-column: 1 / 3; grid-row: 4 / 5; }
-  #hex-panel    { grid-column: 3 / 5; grid-row: 4 / 5; }
+  #log-panel    { grid-column: 1 / 2; grid-row: 2 / 3; }
+  #agent-panel  { grid-column: 2 / 3; grid-row: 2 / 3; }
+  #hex-panel    { grid-column: 1 / 2; grid-row: 3 / 4; }
+  #dos-panel    { grid-column: 2 / 3; grid-row: 3 / 4; }
 
-  #main { color: #b8ffcc; }
-  #side { color: #88ddff; font-size: 11.5px; }
-  #stack { color: #ffaa88; font-size: 11px; }
-  #map { color: #66ffaa; font-size: 10.5px; line-height: 1.05; letter-spacing: 1px; }
-  #graph-area { color: #66ddff; font-size: 11px; line-height: 1.05; }
-  #hex { color: #cccccc; font-size: 11px; line-height: 1.25; }
+  #log   { color: #b8ffcc; }
+  #agent { color: #cce6ff; font-size: 12.5px; }
+  #hex   { color: #cccccc; font-size: 11.5px; line-height: 1.3; }
 
-  #bottom {
-    grid-column: 1 / 5;
-    background: #000;
-    border-top: 1px solid #003322;
-    padding: 6px 12px;
-    color: #ff9966;
-    font-size: 11.5px;
-    overflow: hidden;
-    white-space: pre;
-  }
   .ok    { color: #00ff88; }
   .warn  { color: #ffcc33; }
   .err   { color: #ff4466; }
-  .crit  { color: #ff2244; background: #330011; padding: 0 4px; }
   .dim   { color: #557766; }
   .key   { color: #66ddff; }
   .num   { color: #ffaa55; }
   .hash  { color: #cc88ff; }
+  .kw    { color: #ff79c6; }
+  .str   { color: #f1fa8c; }
+  .com   { color: #6272a4; font-style: italic; }
+  .fn    { color: #50fa7b; }
   .blink { animation: blink 1s steps(2) infinite; }
-  .flash { animation: flash 0.3s ease-out; }
   @keyframes blink { 50% { opacity: 0; } }
-  @keyframes flash {
-    0%   { background: #00ff88; color: #000; }
-    100% { background: transparent; }
-  }
-  .scroll {
-    height: calc(100% - 22px);
-    overflow: hidden;
-  }
+  .scroll { height: calc(100% - 22px); overflow: hidden; }
 
-  /* ===== DOS panels ===== */
+  /* DOS server panel */
   .dos {
     background: #0000aa !important;
     border: 2px solid #5555ff !important;
-    font-family: "Perfect DOS VGA 437", "Consolas", "Courier New", monospace;
     color: #ffffff !important;
     padding: 0;
   }
@@ -113,18 +89,15 @@
     letter-spacing: 1px;
     display: flex; justify-content: space-between;
   }
-  .dos .scroll { padding: 6px 10px; height: calc(100% - 22px); }
+  .dos .scroll { padding: 8px 10px; height: calc(100% - 22px); font-size: 12.5px; line-height: 1.45; }
   .dos-y { color: #ffff55; }
   .dos-w { color: #ffffff; }
   .dos-c { color: #55ffff; }
   .dos-g { color: #55ff55; }
   .dos-r { color: #ff5555; }
   .dos-d { color: #aaaaaa; }
-  .dos-hl { background: #00aaaa; color: #ffffff; }
-  .dos-sel { background: #00aaaa; color: #ffff55; }
 
-  /* hex panel - subtle gray/green */
-  #hex-panel { background: #050505; }
+  /* hex */
   .hex-off  { color: #557766; }
   .hex-byte { color: #aaffaa; }
   .hex-byte.hot { color: #ffcc55; }
@@ -136,100 +109,50 @@
   <div class="bar">
     <span>SEVEN // OPS CONSOLE  v4.7.1  [secure-tty]</span>
     <span id="clock"></span>
-    <span>NODE: kr-seoul-03   UPLINK: <span class="ok">OK</span>   THREAT: <span id="threat" class="ok">GREEN</span></span>
+    <span>NODE: kr-seoul-03   UPLINK: <span class="ok">OK</span></span>
   </div>
 
-  <div class="panel" id="main-panel">
-    <h3><span>[01] MAIN PROCESS STREAM</span><span class="blink">●</span></h3>
-    <div class="scroll" id="main"></div>
+  <div class="panel" id="log-panel">
+    <h3><span>[01] LOG STREAM</span><span class="blink">●</span></h3>
+    <div class="scroll" id="log"></div>
   </div>
 
-  <div class="panel" id="side-panel">
-    <h3><span>[02] AGENT TELEMETRY</span><span>●</span></h3>
-    <div class="scroll" id="side"></div>
-  </div>
-
-  <div class="panel dos" id="norton-panel">
-    <h3><span>[03] K-OPS  FILE MANAGER  v3.21</span><span>[F10=QUIT]</span></h3>
-    <div class="scroll" id="norton"></div>
-  </div>
-
-  <div class="panel" id="stack-panel">
-    <h3><span>[04] STACK / DEBUG</span><span>●</span></h3>
-    <div class="scroll" id="stack"></div>
-  </div>
-
-  <div class="panel" id="graph-panel">
-    <h3><span>[05] AUM DELTA / LATENCY</span><span>●</span></h3>
-    <div class="scroll" id="graph-area"></div>
-  </div>
-
-  <div class="panel" id="map-panel">
-    <h3><span>[06] GLOBAL NODE MAP</span><span class="blink">●</span></h3>
-    <div class="scroll" id="map"></div>
-  </div>
-
-  <div class="panel dos" id="dos-panel">
-    <h3><span>[07] COMMAND.COM   Microsoft(R) MS-DOS(R) Version 6.22</span><span>C:\K_OPS</span></h3>
-    <div class="scroll" id="dos"></div>
+  <div class="panel" id="agent-panel">
+    <h3><span>[02] AGENT MONITOR</span><span>●</span></h3>
+    <div class="scroll" id="agent"></div>
   </div>
 
   <div class="panel" id="hex-panel">
-    <h3><span>[08] HEX DUMP — vault/identity_keychain.enc</span><span>●</span></h3>
+    <h3><span>[03] HEX DUMP — vault/identity_keychain.enc</span><span>●</span></h3>
     <div class="scroll" id="hex"></div>
   </div>
 
-  <div id="bottom">
-    <div id="status"></div>
+  <div class="panel dos" id="dos-panel">
+    <h3><span>[04] srv-edge-03  /  COMMAND.COM  6.22</span><span>idle</span></h3>
+    <div class="scroll" id="dos"></div>
   </div>
 </div>
 
 <script>
-const main = document.getElementById('main');
-const side = document.getElementById('side');
-const stack = document.getElementById('stack');
-const mapEl = document.getElementById('map');
-const graphArea = document.getElementById('graph-area');
-const norton = document.getElementById('norton');
-const dos = document.getElementById('dos');
+const log = document.getElementById('log');
+const agent = document.getElementById('agent');
 const hex = document.getElementById('hex');
-const status = document.getElementById('status');
+const dos = document.getElementById('dos');
 const clock = document.getElementById('clock');
-const threat = document.getElementById('threat');
 
 const FILES = [
   "core/equilibrium.engine.ts","ops/portfolio_balancer.py","intel/asset_tracker.rs",
   "net/uplink_handler.go","crypto/wallet_sweep.sol","modules/seven_mind.dll",
-  "data/k_assets_2026Q2.parquet","logs/lia_building_sensors.log",
-  "agent/whitmore_us.bin","agent/charlie_us.bin","agent/lee_kr.bin",
-  "router/edge_node_03.conf","schedules/arc_2026_06.yml","vault/identity_keychain.enc",
-  "hedge/fx_swap_kor_usd.py","scan/dark_pool_routing.cpp","ml/risk_lstm_v7.pt"
+  "data/assets_2026Q2.parquet","logs/sensors.log","agent/whitmore.bin",
+  "agent/charlie.bin","agent/leejc.bin","router/edge_node_03.conf",
+  "vault/identity_keychain.enc","hedge/fx_swap.py","ml/risk_lstm_v7.pt"
 ];
 const TASKS = [
-  "rebalance position","scan dark pool tickers","verify wallet signature",
-  "compile asset delta","encrypt outbound packet","rotate access keys",
-  "sync replication node","build narrative index","stream sensor batch",
-  "fingerprint counterparty","patch kernel module","flush transaction queue",
-  "calibrate risk model","fork worker thread","snapshot state graph",
-  "negotiate FX bracket","trigger hedge unwind","resolve cross-chain bridge"
+  "rebalance position","scan dark pool","verify signature","compile delta",
+  "encrypt outbound","rotate keys","sync replica","build index",
+  "stream batch","fingerprint peer","flush queue","calibrate model"
 ];
-const AGENTS = ["whitmore","charlie","leejc","park","michael","seven-core","edge-03","vault","mind-7"];
-const REGIONS = [
-  ["SEL","37.5°N 127.0°E"],["NYC","40.7°N 074.0°W"],["LON","51.5°N 000.1°W"],
-  ["TKY","35.6°N 139.6°E"],["SGP","01.3°N 103.8°E"],["FRA","50.1°N 008.6°E"],
-  ["HKG","22.3°N 114.1°E"],["DXB","25.2°N 055.2°E"]
-];
-const STACK_FRAMES = [
-  "at EquilibriumEngine.tick (equilibrium.engine.ts:412)",
-  "at PortfolioBalancer.rebalance (portfolio_balancer.py:88)",
-  "at AssetTracker::sync (asset_tracker.rs:233)",
-  "at UplinkHandler.send (uplink_handler.go:154)",
-  "at WalletSweep.execute (wallet_sweep.sol:67)",
-  "at SevenMind::infer (seven_mind.dll:0x7ffaa12c)",
-  "at RiskLSTM.forward (risk_lstm_v7.pt:layer_19)",
-  "at DarkPool::route (dark_pool_routing.cpp:301)",
-  "at FxSwap.bracket (fx_swap_kor_usd.py:142)"
-];
+const AGENTS = ["whitmore","charlie","leejc","seven-core","edge-03","vault","mind-7"];
 
 const HEX = "0123456789abcdef";
 function rhex(n){ let s=""; for(let i=0;i<n;i++) s+=HEX[Math.floor(Math.random()*16)]; return s; }
@@ -238,7 +161,7 @@ function pad(n,w,c){ c=c||"0"; n=String(n); while(n.length<w) n=c+n; return n; }
 function rpad(s,w){ s=String(s); while(s.length<w) s+=" "; return s; }
 function ts(){
   const d = new Date();
-  return pad(d.getHours(),2)+":"+pad(d.getMinutes(),2)+":"+pad(d.getSeconds(),2)+"."+pad(d.getMilliseconds(),3);
+  return pad(d.getHours(),2)+":"+pad(d.getMinutes(),2)+":"+pad(d.getSeconds(),2);
 }
 function append(el, html, maxLines=240){
   const div = document.createElement('div');
@@ -248,248 +171,149 @@ function append(el, html, maxLines=240){
   el.scrollTop = el.scrollHeight;
   return div;
 }
-function flash(el){
-  el.classList.add('flash');
-  setTimeout(()=>el.classList.remove('flash'), 320);
-}
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
 
-// ===== BURST CONTROLLER =====
-let mode = "normal";
-let modeTimer = 0;
-function pickMode(){
-  const r = Math.random();
-  if(r < 0.10) return ["idle",  1500 + Math.random()*2000];
-  if(r < 0.55) return ["normal",2500 + Math.random()*3000];
-  if(r < 0.85) return ["burst", 1200 + Math.random()*1800];
-  return            ["spike",   600  + Math.random()*900 ];
-}
-function mainDelay(){
-  switch(mode){
-    case "idle":   return 760 + Math.random()*840;
-    case "normal": return 240 + Math.random()*360;
-    case "burst":  return 70  + Math.random()*140;
-    case "spike":  return 24  + Math.random()*56;
-  }
-}
-
-function emitStackTrace(){
-  const lines = 3 + Math.floor(Math.random()*4);
-  append(stack, `<span class="err">!! exception</span> <span class="hash">${rhex(8)}</span>  worker-${Math.floor(Math.random()*32)}`);
-  for(let i=0;i<lines;i++) append(stack, `  <span class="dim">${pick(STACK_FRAMES)}</span>`);
-  append(stack, `<span class="warn">→ recovery routed to seven-core</span>`);
-  append(stack, `<span class="dim">─────────────────────────────────</span>`);
-}
-
-function emitBanner(){
-  const banners = [
-    ['<span class="crit"> CRITICAL </span> margin call edge-07',         "spike"],
-    ['<span class="ok">  COMMIT  </span> equilibrium block #'+rhex(6)+' sealed',       "normal"],
-    ['<span class="warn">  ALERT   </span> ml drift > threshold',  "burst"],
-    ['<span class="key">  DEPLOY  </span> hedge-v7.2 → 12 nodes',        "burst"],
-    ['<span class="crit"> INTRUSION</span> probe blocked 185.'+Math.floor(Math.random()*255)+'.x.x', "spike"]
-  ];
-  const [msg, forceMode] = pick(banners);
-  const node = append(main, `<span class="dim">[${ts()}]</span> ${msg}`);
-  flash(node);
-  if(msg.includes("INTRUSION") || msg.includes("CRITICAL")){
-    threat.textContent = "RED"; threat.className = "err blink";
-    setTimeout(()=>{ threat.textContent="AMBER"; threat.className="warn"; }, 2500);
-    setTimeout(()=>{ threat.textContent="GREEN"; threat.className="ok"; }, 5500);
-  }
-  return forceMode;
-}
-
-function mainLine(){
+// ===== [01] LOG STREAM (slow) =====
+function logLine(){
   const t = ts();
   const r = Math.random();
-  if(r < 0.02){ const fm = emitBanner(); if(fm){ [mode, modeTimer] = [fm, 1500]; } return; }
-  if(r < 0.035){ emitStackTrace(); return; }
   if(r < 0.18){
-    append(main, `<span class="dim">[${t}]</span> <span class="key">build</span>   <span class="ok">${pick(FILES)}</span><span class="dim">:${Math.floor(Math.random()*900)+10}</span>  <span class="num">${(Math.random()*30+2).toFixed(1)}ms</span>`);
+    append(log, `<span class="dim">[${t}]</span> <span class="key">build</span>   <span class="ok">${pick(FILES)}</span><span class="dim">:${Math.floor(Math.random()*900)+10}</span>  <span class="num">${(Math.random()*30+2).toFixed(1)}ms</span>`);
   } else if(r < 0.30){
-    append(main, `<span class="dim">[${t}]</span> <span class="key">tx</span>      <span class="hash">0x${rhex(40)}</span>  <span class="num">${(Math.random()*9.99).toFixed(4)} ETH</span>  <span class="ok">conf</span>`);
+    append(log, `<span class="dim">[${t}]</span> <span class="key">tx</span>      <span class="hash">0x${rhex(40)}</span>  <span class="ok">conf</span>`);
   } else if(r < 0.43){
-    append(main, `<span class="dim">[${t}]</span> <span class="key">agent</span>   ${rpad(pick(AGENTS),11)} → ${pick(TASKS)}`);
+    append(log, `<span class="dim">[${t}]</span> <span class="key">agent</span>   ${rpad(pick(AGENTS),10)} -&gt; ${pick(TASKS)}`);
   } else if(r < 0.55){
     const code = Math.random()<0.92 ? '<span class="ok">200</span>' : (Math.random()<0.6 ? '<span class="warn">429</span>' : '<span class="err">503</span>');
-    append(main, `<span class="dim">[${t}]</span> <span class="key">net</span>     ${Math.floor(Math.random()*9000+1000)}b → edge-${pad(Math.floor(Math.random()*9)+1,2)}  ${code}`);
+    append(log, `<span class="dim">[${t}]</span> <span class="key">net</span>     ${Math.floor(Math.random()*9000+1000)}b -&gt; edge-${pad(Math.floor(Math.random()*9)+1,2)}  ${code}`);
   } else if(r < 0.65){
-    append(main, `<span class="dim">[${t}]</span> <span class="key">vault</span>   key rot fp=<span class="hash">${rhex(8)}:${rhex(8)}</span>`);
+    append(log, `<span class="dim">[${t}]</span> <span class="key">vault</span>   key rot fp=<span class="hash">${rhex(8)}:${rhex(8)}</span>`);
   } else if(r < 0.74){
-    append(main, `<span class="dim">[${t}]</span> <span class="key">db</span>      <span class="dim">SELECT * FROM assets LIMIT ${Math.floor(Math.random()*40+1)}</span>  <span class="num">${(Math.random()*8+0.2).toFixed(2)}ms</span>`);
+    append(log, `<span class="dim">[${t}]</span> <span class="key">db</span>      <span class="dim">SELECT * FROM assets LIMIT ${Math.floor(Math.random()*40+1)}</span>  <span class="num">${(Math.random()*8+0.2).toFixed(2)}ms</span>`);
   } else if(r < 0.82){
-    append(main, `<span class="dim">[${t}]</span> <span class="warn">warn</span>    latency spike link-${Math.floor(Math.random()*8)}  <span class="num">${Math.floor(Math.random()*180+20)}ms</span>`);
+    append(log, `<span class="dim">[${t}]</span> <span class="warn">warn</span>    latency link-${Math.floor(Math.random()*8)}  <span class="num">${Math.floor(Math.random()*180+20)}ms</span>`);
   } else if(r < 0.90){
-    append(main, `<span class="dim">[${t}]</span> <span class="key">model</span>   batch=<span class="num">${Math.floor(Math.random()*64+8)}</span>  loss=<span class="num">${(Math.random()*0.01).toFixed(5)}</span>  acc=<span class="num">${(0.92+Math.random()*0.07).toFixed(4)}</span>`);
+    append(log, `<span class="dim">[${t}]</span> <span class="key">model</span>   batch=<span class="num">${Math.floor(Math.random()*64+8)}</span>  loss=<span class="num">${(Math.random()*0.01).toFixed(5)}</span>`);
   } else if(r < 0.94){
-    append(main, `<span class="dim">[${t}]</span> <span class="err">alert</span>   anomaly → seven-core review queued`);
+    append(log, `<span class="dim">[${t}]</span> <span class="err">alert</span>   anomaly -&gt; seven-core review`);
   } else {
-    append(main, `<span class="dim">[${t}]</span> <span class="ok">ok</span>      heartbeat <span class="hash">${rhex(16)}</span>`);
+    append(log, `<span class="dim">[${t}]</span> <span class="ok">ok</span>      heartbeat <span class="hash">${rhex(16)}</span>`);
   }
 }
-
-// ===== AGENT TELEMETRY =====
-const agentState = AGENTS.map(a=>({ name:a, cpu:30+Math.random()*30, mem:30+Math.random()*30, q:5, state:"RUN", stateTimer:0 }));
-function sideTick(){
-  side.innerHTML = '';
-  for(const s of agentState){
-    s.cpu = Math.max(2, Math.min(99, s.cpu + (Math.random()-0.5)*8 + (mode==="spike"?6:0)));
-    s.mem = Math.max(10, Math.min(95, s.mem + (Math.random()-0.5)*3));
-    s.q   = Math.max(0, s.q + Math.floor((Math.random()-0.5)*8));
-    if(s.stateTimer-- <= 0){
-      const r = Math.random();
-      s.state = r<0.82 ? "RUN" : (r<0.94 ? "WAIT" : "RETRY");
-      s.stateTimer = Math.floor(Math.random()*8+3);
-    }
-    const stateHtml = s.state==="RUN" ? '<span class="ok">RUN  </span>' : s.state==="WAIT" ? '<span class="warn">WAIT </span>' : '<span class="err">RETRY</span>';
-    const w=10, n=Math.floor(s.cpu/10);
-    const bar = "█".repeat(n)+"░".repeat(w-n);
-    append(side,
-      `<span class="key">${rpad(s.name,10)}</span> ${stateHtml}  cpu <span class="num">${pad(s.cpu.toFixed(0),2,' ')}%</span> <span class="dim">${bar}</span>  q=<span class="num">${s.q}</span>`
-    , 60);
-  }
-}
-
-// ===== SPARKLINE =====
-const aumHist=[], latHist=[];
-const W=56, BLOCKS=["▁","▂","▃","▄","▅","▆","▇","█"];
-function push(arr,v){ arr.push(v); while(arr.length>W) arr.shift(); }
-function spark(arr){
-  if(!arr.length) return "";
-  const mn=Math.min(...arr), mx=Math.max(...arr), span=mx-mn||1;
-  return arr.map(v=>BLOCKS[Math.min(7,Math.floor((v-mn)/span*7))]).join("");
-}
-let aum=15.0234, lat=14;
-function graphTick(){
-  aum += (Math.random()-0.5)*0.0006;
-  lat = Math.max(4, Math.min(220, lat + (Math.random()-0.5)*8 + (mode==="spike"?12:0)));
-  push(aumHist,aum); push(latHist,lat);
-  graphArea.innerHTML = '';
-  append(graphArea, `<span class="key">AUM</span>  <span class="num">${aum.toFixed(4)}</span>B USD`);
-  append(graphArea, `<span class="ok">${spark(aumHist)}</span>`);
-  append(graphArea, `<span class="dim">────────────────────────────────────</span>`);
-  const lc = lat<40 ? "ok" : lat<100 ? "warn" : "err";
-  append(graphArea, `<span class="key">LAT</span>  <span class="${lc}">${lat.toFixed(0)}ms</span>`);
-  append(graphArea, `<span class="${lc}">${spark(latHist)}</span>`);
-}
-
-// ===== MAP =====
-const baseMap = [
-"   _ . _ . _ . _ . _ . _ . _ . _ . _ . _ . _ ",
-"  /     \\___/   \\__/   \\____/   \\__/   \\__   ",
-" |  N.AM   |  ATL  | EU  |  AS  |  PAC   |   ",
-"  \\___/ ___\\___/ ___\\___\\___/ ___\\___ ___/   ",
-"     /   \\        /   \\        /   \\         ",
-"    | SA  |      | AFR |      | OCE |        ",
-"     \\___/        \\___/        \\___/         "
-];
-function mapTick(){
-  mapEl.innerHTML = '';
-  for(const line of baseMap) append(mapEl, `<span class="dim">${line}</span>`);
-  append(mapEl, "");
-  for(const [code, coord] of REGIONS){
-    const ms = Math.floor(Math.random()*200+5);
-    const c = Math.random()<0.85 ? "ok" : (Math.random()<0.6 ? "warn" : "err");
-    const blip = Math.random()<0.5 ? "●" : "◉";
-    append(mapEl, `<span class="${c}">${blip}</span> <span class="key">${code}</span> <span class="dim">${coord}</span>  <span class="num">${ms}ms</span>`);
-  }
-}
-
-// ===== DOS NORTON-STYLE FILE BROWSER =====
-const NORTON_DIRS = ["AGENTS", "ASSETS", "INTEL", "VAULT", "LOGS"];
-const NORTON_FILES = [
-  ["WHITMORE","BIN",1234567,"04-12-26"],
-  ["CHARLIE ","BIN", 987654,"04-12-26"],
-  ["LEEJC   ","BIN", 456789,"04-11-26"],
-  ["PARK    ","BIN", 334221,"04-11-26"],
-  ["MICHAEL ","BIN", 998877,"04-10-26"],
-  ["SEVEN   ","DLL",2345678,"04-15-26"],
-  ["MIND7   ","DLL",1789234,"04-15-26"],
-  ["EQUILIB ","LOG",4567890,"05-13-26"],
-  ["K_ASSETS","DAT",8923451,"05-13-26"],
-  ["HOLDINGS","IDX", 234567,"05-13-26"],
-  ["RISK    ","LSTM",78234567,"04-22-26"],
-  ["VAULT   ","ENC",  98765,"05-01-26"]
-];
-let nortonSel = 0;
-let nortonDir = "AGENTS";
-function commas(n){ return String(n).replace(/\B(?=(\d{3})+(?!\d))/g,","); }
-function nortonTick(){
-  // navigate
-  if(Math.random()<0.4){
-    nortonSel = (nortonSel + (Math.random()<0.7?1:-1) + NORTON_FILES.length) % NORTON_FILES.length;
-  }
-  if(Math.random()<0.05) nortonDir = pick(NORTON_DIRS);
-
-  norton.innerHTML = '';
-  append(norton, `<span class="dos-c">╔═══════════════════════════════════════╗</span>`);
-  append(norton, `<span class="dos-c">║</span> <span class="dos-y">C:\\K_OPS\\${rpad(nortonDir,28)}</span> <span class="dos-c">║</span>`);
-  append(norton, `<span class="dos-c">╠═══════════════════════════════════════╣</span>`);
-  append(norton, `<span class="dos-c">║</span> <span class="dos-d">Name        Ext   Size       Date    </span> <span class="dos-c">║</span>`);
-  append(norton, `<span class="dos-c">╟───────────────────────────────────────╢</span>`);
-  append(norton, `<span class="dos-c">║</span> <span class="dos-w">..          &lt;DIR&gt;                     </span> <span class="dos-c">║</span>`);
-  for(let i=0;i<NORTON_FILES.length;i++){
-    const [n,e,sz,d] = NORTON_FILES[i];
-    const line = `${n} ${e}  ${pad(commas(sz),10,' ')} ${d}`;
-    if(i===nortonSel){
-      append(norton, `<span class="dos-c">║</span> <span class="dos-sel"> ${rpad(line,37)} </span><span class="dos-c">║</span>`);
-    } else {
-      append(norton, `<span class="dos-c">║</span> <span class="dos-w">${rpad(line,39)}</span><span class="dos-c">║</span>`);
-    }
-  }
-  append(norton, `<span class="dos-c">╠═══════════════════════════════════════╣</span>`);
-  const tot = NORTON_FILES.reduce((s,f)=>s+f[2],0);
-  append(norton, `<span class="dos-c">║</span> <span class="dos-y">${rpad(NORTON_FILES.length+' file(s)  '+commas(tot)+' bytes',37)}</span> <span class="dos-c">║</span>`);
-  append(norton, `<span class="dos-c">╚═══════════════════════════════════════╝</span>`);
-  append(norton, `<span class="dos-d">F1</span><span class="dos-y">Help </span><span class="dos-d">F3</span><span class="dos-y">View </span><span class="dos-d">F4</span><span class="dos-y">Edit </span><span class="dos-d">F5</span><span class="dos-y">Copy </span><span class="dos-d">F8</span><span class="dos-y">Del </span><span class="dos-d">F10</span><span class="dos-y">Quit</span>`);
-}
-
-// ===== DOS PROMPT (auto-typing) =====
-const DOS_COMMANDS = [
-  ["dir /b *.bin",          ["WHITMORE.BIN","CHARLIE.BIN","LEEJC.BIN","PARK.BIN","MICHAEL.BIN"]],
-  ["type holdings.idx",     ["REAL_ESTATE      2.34B","US_EQUITIES      4.12B","CRYPTO_COLD      1.89B","FX_RESERVE       0.78B","DERIVATIVES      5.94B"]],
-  ["ping seven-core",       ["Pinging seven-core [10.7.0.1] with 32 bytes:","Reply from 10.7.0.1: bytes=32 time=4ms TTL=64","Reply from 10.7.0.1: bytes=32 time=3ms TTL=64","Reply from 10.7.0.1: bytes=32 time=5ms TTL=64"]],
-  ["mem",                   ["655,360 bytes total conventional memory","613,408 bytes available","Largest executable program: 612,288 bytes","16,777,216 bytes total contiguous extended memory"]],
-  ["chkdsk c:",             ["Volume K_OPS    created 03-21-26 02:14a","2,147,483,648 bytes total disk space","   12,582,912 bytes in 31 directories","1,892,341,760 bytes in 4,231 user files","  242,558,976 bytes available on disk"]],
-  ["copy vault\\*.enc a:",  ["IDENTITY_KEYCHAIN.ENC","HEDGE_SIGNING.ENC","MASTER_SEED.ENC","        3 file(s) copied"]],
-  ["scan /full",            ["Scanning C:\\K_OPS ...","No threats found.","Scan completed in 4.21 sec."]],
-  ["equilib status",        ["PHASE-2  47.3% complete","AGENTS    9 online","AUM      15.0234 B USD","NEXT EVENT: 2026-06-12  ARC close"]]
-];
-let dosBuffer = [];
-async function dosTypeCmd(cmd, out){
-  // print prompt + type the cmd char by char
-  const line = document.createElement('div');
-  line.innerHTML = `<span class="dos-g">C:\\K_OPS&gt;</span> <span class="dos-w"></span><span class="dos-cur blink" style="background:#ffffff;color:#0000aa">_</span>`;
-  dos.appendChild(line);
-  while(dos.childNodes.length > 80) dos.removeChild(dos.firstChild);
-  const span = line.querySelector('.dos-w');
-  const cur  = line.querySelector('.dos-cur');
-  for(const ch of cmd){
-    span.textContent += ch;
-    await sleep(60 + Math.random()*120);
-  }
-  cur.remove();
-  // print output
-  for(const o of out){
-    append(dos, `<span class="dos-w">${o}</span>`, 80);
-    await sleep(120 + Math.random()*240);
-  }
-  append(dos, "", 80);
-}
-function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
-async function dosLoop(){
-  // initial banner
-  append(dos, `<span class="dos-w">Microsoft(R) MS-DOS(R) Version 6.22</span>`);
-  append(dos, `<span class="dos-w">(C)Copyright Microsoft Corp 1981-1994.</span>`);
-  append(dos, "");
+async function logLoop(){
+  [
+    '<span class="ok">SEVEN OPS CONSOLE v4.7.1</span>',
+    '<span class="dim">opening secure tty .......</span> <span class="ok">ok</span>',
+    '<span class="dim">subscribing log stream ...</span> <span class="ok">ok</span>',
+    '<span class="dim">────────────────────────────────────</span>'
+  ].forEach(l=>append(log,l));
   while(true){
-    await sleep(1600 + Math.random()*3600);
-    const [cmd, out] = pick(DOS_COMMANDS);
-    await dosTypeCmd(cmd, out);
+    logLine();
+    await sleep(900 + Math.random()*1400);
   }
 }
 
-// ===== HEX DUMP =====
+// ===== [02] AGENT MONITOR (typing programming snippets, slow) =====
+const SNIPPETS = [
+  {agent:"whitmore", lang:"python", lines:[
+    ['<span class="com"># scan US dark pool routes</span>'],
+    ['<span class="kw">def</span> <span class="fn">scan_routes</span>(tickers: <span class="kw">list</span>[<span class="kw">str</span>]) -&gt; <span class="kw">dict</span>:'],
+    ['    routes = {}'],
+    ['    <span class="kw">for</span> t <span class="kw">in</span> tickers:'],
+    ['        r = pool.<span class="fn">resolve</span>(t, depth=<span class="num">3</span>)'],
+    ['        <span class="kw">if</span> r.spread &lt; <span class="num">0.0008</span>:'],
+    ['            routes[t] = r'],
+    ['    <span class="kw">return</span> routes'],
+    ['<span class="com"># resolved 47 routes in 312ms</span>']
+  ]},
+  {agent:"charlie", lang:"rust", lines:[
+    ['<span class="com">// rebalance portfolio under risk budget</span>'],
+    ['<span class="kw">pub fn</span> <span class="fn">rebalance</span>(p: &amp;<span class="kw">mut</span> Portfolio) -&gt; <span class="kw">Result</span>&lt;Delta&gt; {'],
+    ['    <span class="kw">let</span> var = p.<span class="fn">value_at_risk</span>(<span class="num">0.99</span>)?;'],
+    ['    <span class="kw">if</span> var &gt; p.budget {'],
+    ['        p.<span class="fn">trim</span>(<span class="str">"high_beta"</span>, var - p.budget)?;'],
+    ['    }'],
+    ['    <span class="kw">Ok</span>(p.<span class="fn">snapshot</span>())'],
+    ['}']
+  ]},
+  {agent:"leejc", lang:"sql", lines:[
+    ['<span class="com">-- aggregate KR holdings by sector</span>'],
+    ['<span class="kw">SELECT</span> sector, <span class="fn">SUM</span>(notional) <span class="kw">AS</span> total'],
+    ['<span class="kw">FROM</span>   holdings'],
+    ['<span class="kw">WHERE</span>  region = <span class="str">\'KR\'</span>'],
+    ['  <span class="kw">AND</span>  ts &gt; <span class="fn">NOW</span>() - <span class="kw">INTERVAL</span> <span class="str">\'7 days\'</span>'],
+    ['<span class="kw">GROUP BY</span> sector'],
+    ['<span class="kw">ORDER BY</span> total <span class="kw">DESC</span>;'],
+    ['<span class="com">-- 14 rows in 0.42s</span>']
+  ]},
+  {agent:"seven-core", lang:"typescript", lines:[
+    ['<span class="com">// dispatch task to least-loaded agent</span>'],
+    ['<span class="kw">async function</span> <span class="fn">dispatch</span>(task: Task): <span class="kw">Promise</span>&lt;Result&gt; {'],
+    ['    <span class="kw">const</span> pool = <span class="kw">await</span> registry.<span class="fn">healthy</span>();'],
+    ['    <span class="kw">const</span> pick = pool.<span class="fn">reduce</span>((a, b) =&gt;'],
+    ['        a.load &lt; b.load ? a : b'],
+    ['    );'],
+    ['    <span class="kw">return</span> pick.<span class="fn">run</span>(task);'],
+    ['}']
+  ]},
+  {agent:"vault", lang:"go", lines:[
+    ['<span class="com">// rotate signing keys every 12h</span>'],
+    ['<span class="kw">func</span> <span class="fn">RotateKeys</span>(ctx context.Context) <span class="kw">error</span> {'],
+    ['    keys, err := store.<span class="fn">List</span>(ctx)'],
+    ['    <span class="kw">if</span> err != nil { <span class="kw">return</span> err }'],
+    ['    <span class="kw">for</span> _, k := <span class="kw">range</span> keys {'],
+    ['        _ = store.<span class="fn">Rotate</span>(ctx, k.ID)'],
+    ['    }'],
+    ['    <span class="kw">return</span> nil'],
+    ['}']
+  ]},
+  {agent:"mind-7", lang:"python", lines:[
+    ['<span class="com"># forward pass on risk LSTM</span>'],
+    ['x = features.<span class="fn">to</span>(device)'],
+    ['<span class="kw">with</span> torch.<span class="fn">no_grad</span>():'],
+    ['    logits = model(x)'],
+    ['    probs  = torch.<span class="fn">softmax</span>(logits, dim=-<span class="num">1</span>)'],
+    ['<span class="kw">print</span>(<span class="str">f"risk={probs[0,1]:.4f}"</span>)']
+  ]}
+];
+
+async function typeLine(html){
+  const div = document.createElement('div');
+  agent.appendChild(div);
+  while(agent.childNodes.length > 60) agent.removeChild(agent.firstChild);
+  // strip HTML tags for char-by-char, then re-inject
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  const plain = tmp.textContent;
+  // simple typing: reveal one char at a time using plain text, then replace with rich html when done
+  for(let i=1;i<=plain.length;i++){
+    div.textContent = plain.slice(0,i);
+    agent.scrollTop = agent.scrollHeight;
+    await sleep(28 + Math.random()*55);
+  }
+  div.innerHTML = html;
+  agent.scrollTop = agent.scrollHeight;
+}
+
+async function agentLoop(){
+  append(agent, `<span class="ok">[ agent monitor ]</span> attached to 7 workers`);
+  append(agent, `<span class="dim">────────────────────────────────────</span>`);
+  await sleep(800);
+  while(true){
+    const s = pick(SNIPPETS);
+    append(agent, `<span class="dim">$</span> <span class="key">${s.agent}</span> <span class="dim">(${s.lang})</span> <span class="dim">// ${ts()}</span>`);
+    await sleep(400);
+    for(const ln of s.lines){
+      await typeLine(ln[0]);
+      await sleep(180 + Math.random()*260);
+    }
+    append(agent, `<span class="ok">  ok</span> <span class="dim">exit 0  (${(Math.random()*900+100).toFixed(0)}ms)</span>`);
+    append(agent, "");
+    await sleep(1800 + Math.random()*2200);
+  }
+}
+
+// ===== [03] HEX DUMP (slow) =====
 function hexLine(off){
   const bytes = [];
   for(let i=0;i<16;i++) bytes.push(Math.floor(Math.random()*256));
@@ -498,78 +322,78 @@ function hexLine(off){
     const hot = b>0xf0 || b<0x10;
     return `<span class="hex-byte${hot?' hot':''}">${h}</span>`;
   });
-  // group as 8 + 8
   const left = bs.slice(0,8).join(" ");
   const right = bs.slice(8,16).join(" ");
   const ascii = bytes.map(b=>(b>=32&&b<127)?String.fromCharCode(b):".").join("");
   return `<span class="hex-off">${pad(off.toString(16),8)}</span>  ${left}  ${right}  <span class="hex-ascii">|${ascii}|</span>`;
 }
 let hexOff = 0;
-function hexTick(){
-  for(let i=0;i<2;i++){
-    append(hex, hexLine(hexOff), 26);
+async function hexLoop(){
+  while(true){
+    append(hex, hexLine(hexOff), 30);
     hexOff = (hexOff + 16) & 0xffffff;
+    await sleep(700 + Math.random()*500);
   }
 }
 
-// ===== BOTTOM STATUS =====
-let progress = 0, arcProg = 0, idxProg = 0;
-function makeBar(pct, color){
-  const n = Math.floor(pct/2.5);
-  return `[<span class="${color}">${"█".repeat(n)}${"░".repeat(40-n)}</span>] <span class="num">${pct.toFixed(1)}%</span>`;
-}
-function statusLine(){
-  progress = (progress + Math.random()*0.6) % 100;
-  arcProg  = (arcProg  + Math.random()*1.4) % 100;
-  idxProg  = (idxProg  + Math.random()*0.3) % 100;
-  const phase = progress<25?"PHASE-1":progress<55?"PHASE-2":progress<80?"PHASE-3":"PHASE-4";
-  const modeColor = mode==="spike" ? "err" : mode==="burst" ? "warn" : mode==="idle" ? "dim" : "ok";
-  status.innerHTML =
-    `EQUILIBRIUM ${phase}  ${makeBar(progress,"ok")}\n` +
-    `ARC SYNC            ${makeBar(arcProg,"key")}\n` +
-    `INDEX REBUILD       ${makeBar(idxProg,"warn")}\n` +
-    `AUM <span class="num">${aum.toFixed(4)}B USD</span>   LAT <span class="num">${lat.toFixed(0)}ms</span>   ` +
-    `AGENTS <span class="ok">${AGENTS.length} online</span>   MODE <span class="${modeColor}">${mode.toUpperCase()}</span>   ` +
-    `THREATS <span class="ok">0</span>   <span class="blink">●</span> LIVE`;
+// ===== [04] DOS SERVER TERMINAL (idle, occasional activity) =====
+const DOS_EVENTS = [
+  () => [`<span class="dos-d">[${dts()}]</span> <span class="dos-g">sshd</span>: accepted connection from 10.7.0.${Math.floor(Math.random()*254+1)}`],
+  () => [`<span class="dos-d">[${dts()}]</span> <span class="dos-g">cron</span>: rotate /var/log/edge.log`],
+  () => [`<span class="dos-d">[${dts()}]</span> <span class="dos-y">syslog</span>: disk usage 47% (sda1)`],
+  () => [`<span class="dos-d">[${dts()}]</span> <span class="dos-g">backup</span>: snapshot complete  308 MB`],
+  () => [
+    `<span class="dos-d">[${dts()}]</span> <span class="dos-g">heartbeat</span>: seven-core OK  4ms`,
+    `<span class="dos-d">[${dts()}]</span> <span class="dos-g">heartbeat</span>: vault       OK  3ms`,
+    `<span class="dos-d">[${dts()}]</span> <span class="dos-g">heartbeat</span>: edge-03     OK  5ms`
+  ],
+  () => [`<span class="dos-d">[${dts()}]</span> <span class="dos-y">net</span>: link link-2 jitter ${Math.floor(Math.random()*30+8)}ms`],
+  () => [`<span class="dos-d">[${dts()}]</span> <span class="dos-r">audit</span>: failed login attempt (root) from 185.${Math.floor(Math.random()*255)}.x.x  blocked`]
+];
+function dts(){
+  const d = new Date();
+  return pad(d.getHours(),2)+":"+pad(d.getMinutes(),2)+":"+pad(d.getSeconds(),2);
 }
 
+async function dosLoop(){
+  append(dos, `<span class="dos-w">Microsoft(R) MS-DOS(R) Version 6.22</span>`);
+  append(dos, `<span class="dos-w">(C)Copyright Microsoft Corp 1981-1994.</span>`);
+  append(dos, ``);
+  append(dos, `<span class="dos-y">srv-edge-03</span> <span class="dos-d">login:</span> <span class="dos-w">operator</span>`);
+  append(dos, `<span class="dos-d">Last login: Wed May 13 02:14:03 from 10.7.0.4</span>`);
+  append(dos, ``);
+  append(dos, `<span class="dos-w">System status:</span> <span class="dos-g">nominal</span>`);
+  append(dos, `<span class="dos-w">Uptime:</span> <span class="dos-y">47 days, 03:21:18</span>`);
+  append(dos, `<span class="dos-w">Load:</span> <span class="dos-y">0.34  0.41  0.38</span>`);
+  append(dos, ``);
+  append(dos, `<span class="dos-g">C:\\&gt;</span> <span class="blink">_</span>`);
+  while(true){
+    await sleep(3500 + Math.random()*5500);
+    // remove the blinking prompt placeholder
+    if(dos.lastChild && dos.lastChild.innerHTML.includes('blink')) dos.removeChild(dos.lastChild);
+    const evt = pick(DOS_EVENTS)();
+    for(const line of evt){
+      append(dos, line, 80);
+      await sleep(220 + Math.random()*380);
+    }
+    // re-add the waiting prompt
+    append(dos, ``, 80);
+    append(dos, `<span class="dos-g">C:\\&gt;</span> <span class="blink">_</span>`, 80);
+  }
+}
+
+// ===== CLOCK =====
 function tickClock(){
   const d = new Date();
   clock.textContent = d.toISOString().replace('T',' ').replace('Z',' UTC');
 }
-
-// init banner
-[
-  '<span class="ok">SEVEN OPS CONSOLE v4.7.1</span>  © sub2veni-source',
-  '<span class="dim">loading modules ............</span> <span class="ok">ok</span>',
-  '<span class="dim">attaching 9 agents .........</span> <span class="ok">ok</span>',
-  '<span class="dim">uplink to kr-seoul-03 ......</span> <span class="ok">ok</span>',
-  '<span class="dim">opening secure tty .........</span> <span class="ok">ok</span>',
-  '<span class="dim">subscribing equilibrium ....</span> <span class="ok">ok</span>',
-  '<span class="dim">─────────────────────────────────────────────────────</span>'
-].forEach(l=>append(main,l));
-
-function mainLoop(){
-  mainLine();
-  if(mode==="burst" || mode==="spike"){
-    const extra = Math.floor(Math.random()* (mode==="spike"?5:3));
-    for(let i=0;i<extra;i++) mainLine();
-  }
-  modeTimer -= 100;
-  if(modeTimer <= 0){ [mode, modeTimer] = pickMode(); }
-  setTimeout(mainLoop, mainDelay());
-}
-mainLoop();
-dosLoop();
-
-setInterval(sideTick, 1200);
-setInterval(graphTick, 700);
-setInterval(mapTick, 2800);
-setInterval(nortonTick, 1400);
-setInterval(hexTick, 440);
-setInterval(statusLine, 440);
 setInterval(tickClock, 1000);
 tickClock();
+
+logLoop();
+agentLoop();
+hexLoop();
+dosLoop();
 </script>
 </body>
 </html>
