@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SEVEN // Operations Console</title>
+<style>
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    background: #000;
+    font-family: "Consolas", "Menlo", "Courier New", monospace;
+    color: #00ff88;
+    overflow: hidden;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  #wrap {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 28px 7fr 3fr;
+    height: 100vh;
+    gap: 2px;
+    background: #0a0a0a;
+  }
+  .bar {
+    grid-column: 1 / 3;
+    background: linear-gradient(90deg,#001a0d,#000);
+    color: #6cff6c;
+    font-size: 12px;
+    padding: 6px 12px;
+    border-bottom: 1px solid #003322;
+    display: flex; justify-content: space-between;
+    letter-spacing: 1px;
+  }
+  .panel {
+    background: #000;
+    border: 1px solid #003322;
+    overflow: hidden;
+    position: relative;
+    padding: 8px 10px;
+    font-size: 12px;
+    line-height: 1.4;
+    white-space: pre;
+  }
+  .panel h3 {
+    margin: 0 0 6px 0;
+    color: #00ffaa;
+    font-size: 10.5px;
+    letter-spacing: 2px;
+    border-bottom: 1px dashed #004433;
+    padding-bottom: 3px;
+    display: flex; justify-content: space-between;
+  }
+  #log-panel    { grid-column: 1 / 2; grid-row: 2 / 3; }
+  #agent-panel  { grid-column: 2 / 3; grid-row: 2 / 3; }
+  #hex-panel    { grid-column: 1 / 2; grid-row: 3 / 4; }
+  #dos-panel    { grid-column: 2 / 3; grid-row: 3 / 4; }
+
+  #log   { color: #b8ffcc; }
+  #agent { color: #cce6ff; font-size: 12.5px; }
+  #hex   { color: #cccccc; font-size: 11.5px; line-height: 1.3; }
+
+  .ok    { color: #00ff88; }
+  .warn  { color: #ffcc33; }
+  .err   { color: #ff4466; }
+  .dim   { color: #557766; }
+  .key   { color: #66ddff; }
+  .num   { color: #ffaa55; }
+  .hash  { color: #cc88ff; }
+  .kw    { color: #ff79c6; }
+  .str   { color: #f1fa8c; }
+  .com   { color: #6272a4; font-style: italic; }
+  .fn    { color: #50fa7b; }
+  .blink { animation: blink 1s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .scroll {
+    height: calc(100% - 30px);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+  .scroll > * { flex-shrink: 0; }
+
+  /* DOS server panel */
+  .dos {
+    background: #0000aa !important;
+    border: 2px solid #5555ff !important;
+    color: #ffffff !important;
+    padding: 0;
+  }
+  .dos h3 {
+    background: #aaaaaa;
+    color: #000000;
+    margin: 0;
+    padding: 2px 8px;
+    border: none;
+    font-weight: bold;
+    letter-spacing: 1px;
+    display: flex; justify-content: space-between;
+  }
+  .dos .scroll {
+    padding: 8px 10px;
+    height: calc(100% - 26px);
+    font-size: 12.5px;
+    line-height: 1.45;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+  .dos-y { color: #ffff55; }
+  .dos-w { color: #ffffff; }
+  .dos-c { color: #55ffff; }
+  .dos-g { color: #55ff55; }
+  .dos-r { color: #ff5555; }
+  .dos-d { color: #aaaaaa; }
+
+  /* hex */
+  .hex-off  { color: #557766; }
+  .hex-byte { color: #aaffaa; }
+  .hex-byte.hot { color: #ffcc55; }
+  .hex-ascii { color: #88bbff; }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div class="bar">
+    <span>SEVEN // OPS CONSOLE  v4.7.1  [secure-tty]</span>
+    <span id="clock"></span>
+    <span>NODE: kr-seoul-03   UPLINK: <span class="ok">OK</span></span>
+  </div>
+
+  <div class="panel" id="log-panel">
+    <h3><span>[01] LOG STREAM</span><span class="blink">●</span></h3>
+    <div class="scroll" id="log"></div>
+  </div>
+
+  <div class="panel" id="agent-panel">
+    <h3><span>[02] AGENT MONITOR</span><span>●</span></h3>
+    <div class="scroll" id="agent"></div>
+  </div>
+
+  <div class="panel" id="hex-panel">
+    <h3><span>[03] HEX DUMP — vault/identity_keychain.enc</span><span>●</span></h3>
+    <div class="scroll" id="hex"></div>
+  </div>
+
+  <div class="panel dos" id="dos-panel">
+    <h3><span>[04] srv-edge-03  /  COMMAND.COM  6.22</span><span>idle</span></h3>
+    <div class="scroll" id="dos"></div>
+  </div>
+</div>
+
+<script>
+const log = document.getElementById('log');
+const agent = document.getElementById('agent');
+const hex = document.getElementById('hex');
+const dos = document.getElementById('dos');
+const clock = document.getElementById('clock');
+
+const FILES = [
+  "core/equilibrium.engine.ts","ops/portfolio_balancer.py","intel/asset_tracker.rs",
+  "net/uplink_handler.go","crypto/wallet_sweep.sol","modules/seven_mind.dll",
+  "data/assets_2026Q2.parquet","logs/sensors.log","agent/whitmore.bin",
+  "agent/charlie.bin","agent/leejc.bin","router/edge_node_03.conf",
+  "vault/identity_keychain.enc","hedge/fx_swap.py","ml/risk_lstm_v7.pt"
+];
+const TASKS = [
+  "rebalance position","scan dark pool","verify signature","compile delta",
+  "encrypt outbound","rotate keys","sync replica","build index",
+  "stream batch","fingerprint peer","flush queue","calibrate model"
+];
+const AGENTS = ["whitmore","charlie","leejc","seven-core","edge-03","vault","mind-7"];
+
+const HEX = "0123456789abcdef";
+function rhex(n){ let s=""; for(let i=0;i<n;i++) s+=HEX[Math.floor(Math.random()*16)]; return s; }
+function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
+function pad(n,w,c){ c=c||"0"; n=String(n); while(n.length<w) n=c+n; return n; }
+function rpad(s,w){ s=String(s); while(s.length<w) s+=" "; return s; }
+function ts(){
+  const d = new Date();
+  return pad(d.getHours(),2)+":"+pad(d.getMinutes(),2)+":"+pad(d.getSeconds(),2);
+}
+function append(el, html, maxLines=240){
+  const div = document.createElement('div');
+  div.innerHTML = html;
+  el.appendChild(div);
+  while(el.childNodes.length > maxLines) el.removeChild(el.firstChild);
+  el.scrollTop = el.scrollHeight;
+  return div;
+}
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+// ===== [01] LOG STREAM (slow) =====
+function logLine(){
+  const t = ts();
+  const r = Math.random();
+  if(r < 0.18){
+    append(log, `<span class="dim">[${t}]</span> <span class="key">build</span>   <span class="ok">${pick(FILES)}</span><span class="dim">:${Math.floor(Math.random()*900)+10}</span>  <span class="num">${(Math.random()*30+2).toFixed(1)}ms</span>`);
+  } else if(r < 0.30){
+    append(log, `<span class="dim">[${t}]</span> <span class="key">tx</span>      <span class="hash">0x${rhex(40)}</span>  <span class="ok">conf</span>`);
+  } else if(r < 0.43){
+    append(log, `<span class="dim">[${t}]</span> <span class="key">agent</span>   ${rpad(pick(AGENTS),10)} -&gt; ${pick(TASKS)}`);
+  } else if(r < 0.55){
+    const code = Math.random()<0.92 ? '<span class="ok">200</span>' : (Math.random()<0.6 ? '<span class="warn">429</span>' : '<span class="err">503</span>');
+    append(log, `<span class="dim">[${t}]</span> <span class="key">net</span>     ${Math.floor(Math.random()*9000+1000)}b -&gt; edge-${pad(Math.floor(Math.random()*9)+1,2)}  ${code}`);
+  } else if(r < 0.65){
+    append(log, `<span class="dim">[${t}]</span> <span class="key">vault</span>   key rot fp=<span class="hash">${rhex(8)}:${rhex(8)}</span>`);
+  } else if(r < 0.74){
+    append(log, `<span class="dim">[${t}]</span> <span class="key">db</span>      <span class="dim">SELECT * FROM assets LIMIT ${Math.floor(Math.random()*40+1)}</span>  <span class="num">${(Math.random()*8+0.2).toFixed(2)}ms</span>`);
+  } else if(r < 0.82){
+    append(log, `<span class="dim">[${t}]</span> <span class="warn">warn</span>    latency link-${Math.floor(Math.random()*8)}  <span class="num">${Math.floor(Math.random()*180+20)}ms</span>`);
+  } else if(r < 0.90){
+    append(log, `<span class="dim">[${t}]</span> <span class="key">model</span>   batch=<span class="num">${Math.floor(Math.random()*64+8)}</span>  loss=<span class="num">${(Math.random()*0.01).toFixed(5)}</span>`);
+  } else if(r < 0.94){
+    append(log, `<span class="dim">[${t}]</span> <span class="err">alert</span>   anomaly -&gt; seven-core review`);
+  } else {
+    append(log, `<span class="dim">[${t}]</span> <span class="ok">ok</span>      heartbeat <span class="hash">${rhex(16)}</span>`);
+  }
+}
+async function logLoop(){
+  [
+    '<span class="ok">SEVEN OPS CONSOLE v4.7.1</span>',
+    '<span class="dim">opening secure tty .......</span> <span class="ok">ok</span>',
+    '<span class="dim">subscribing log stream ...</span> <span class="ok">ok</span>',
+    '<span class="dim">────────────────────────────────────</span>'
+  ].forEach(l=>append(log,l));
+  while(true){
+    logLine();
+    await sleep(900 + Math.random()*1400);
+  }
+}
+
+// ===== [02] AGENT MONITOR (typing programming snippets, slow) =====
+const SNIPPETS = [
+  {agent:"whitmore", lang:"python", lines:[
+    ['<span class="com"># scan US dark pool routes</span>'],
+    ['<span class="kw">def</span> <span class="fn">scan_routes</span>(tickers: <span class="kw">list</span>[<span class="kw">str</span>]) -&gt; <span class="kw">dict</span>:'],
+    ['    routes = {}'],
+    ['    <span class="kw">for</span> t <span class="kw">in</span> tickers:'],
+    ['        r = pool.<span class="fn">resolve</span>(t, depth=<span class="num">3</span>)'],
+    ['        <span class="kw">if</span> r.spread &lt; <span class="num">0.0008</span>:'],
+    ['            routes[t] = r'],
+    ['    <span class="kw">return</span> routes'],
+    ['<span class="com"># resolved 47 routes in 312ms</span>']
+  ]},
+  {agent:"charlie", lang:"rust", lines:[
+    ['<span class="com">// rebalance portfolio under risk budget</span>'],
+    ['<span class="kw">pub fn</span> <span class="fn">rebalance</span>(p: &amp;<span class="kw">mut</span> Portfolio) -&gt; <span class="kw">Result</span>&lt;Delta&gt; {'],
+    ['    <span class="kw">let</span> var = p.<span class="fn">value_at_risk</span>(<span class="num">0.99</span>)?;'],
+    ['    <span class="kw">if</span> var &gt; p.budget {'],
+    ['        p.<span class="fn">trim</span>(<span class="str">"high_beta"</span>, var - p.budget)?;'],
+    ['    }'],
+    ['    <span class="kw">Ok</span>(p.<span class="fn">snapshot</span>())'],
+    ['}']
+  ]},
+  {agent:"leejc", lang:"sql", lines:[
+    ['<span class="com">-- aggregate KR holdings by sector</span>'],
+    ['<span class="kw">SELECT</span> sector, <span class="fn">SUM</span>(notional) <span class="kw">AS</span> total'],
+    ['<span class="kw">FROM</span>   holdings'],
+    ['<span class="kw">WHERE</span>  region = <span class="str">\'KR\'</span>'],
+    ['  <span class="kw">AND</span>  ts &gt; <span class="fn">NOW</span>() - <span class="kw">INTERVAL</span> <span class="str">\'7 days\'</span>'],
+    ['<span class="kw">GROUP BY</span> sector'],
+    ['<span class="kw">ORDER BY</span> total <span class="kw">DESC</span>;'],
+    ['<span class="com">-- 14 rows in 0.42s</span>']
+  ]},
+  {agent:"seven-core", lang:"typescript", lines:[
+    ['<span class="com">// dispatch task to least-loaded agent</span>'],
+    ['<span class="kw">async function</span> <span class="fn">dispatch</span>(task: Task): <span class="kw">Promise</span>&lt;Result&gt; {'],
+    ['    <span class="kw">const</span> pool = <span class="kw">await</span> registry.<span class="fn">healthy</span>();'],
+    ['    <span class="kw">const</span> pick = pool.<span class="fn">reduce</span>((a, b) =&gt;'],
+    ['        a.load &lt; b.load ? a : b'],
+    ['    );'],
+    ['    <span class="kw">return</span> pick.<span class="fn">run</span>(task);'],
+    ['}']
+  ]},
+  {agent:"vault", lang:"go", lines:[
+    ['<span class="com">// rotate signing keys every 12h</span>'],
+    ['<span class="kw">func</span> <span class="fn">RotateKeys</span>(ctx context.Context) <span class="kw">error</span> {'],
+    ['    keys, err := store.<span class="fn">List</span>(ctx)'],
+    ['    <span class="kw">if</span> err != nil { <span class="kw">return</span> err }'],
+    ['    <span class="kw">for</span> _, k := <span class="kw">range</span> keys {'],
+    ['        _ = store.<span class="fn">Rotate</span>(ctx, k.ID)'],
+    ['    }'],
+    ['    <span class="kw">return</span> nil'],
+    ['}']
+  ]},
+  {agent:"mind-7", lang:"python", lines:[
+    ['<span class="com"># forward pass on risk LSTM</span>'],
+    ['x = features.<span class="fn">to</span>(device)'],
+    ['<span class="kw">with</span> torch.<span class="fn">no_grad</span>():'],
+    ['    logits = model(x)'],
+    ['    probs  = torch.<span class="fn">softmax</span>(logits, dim=-<span class="num">1</span>)'],
+    ['<span class="kw">print</span>(<span class="str">f"risk={probs[0,1]:.4f}"</span>)']
+  ]}
+];
+
+async function typeLine(html){
+  const div = document.createElement('div');
+  agent.appendChild(div);
+  while(agent.childNodes.length > 60) agent.removeChild(agent.firstChild);
+  // strip HTML tags for char-by-char, then re-inject
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  const plain = tmp.textContent;
+  // simple typing: reveal one char at a time using plain text, then replace with rich html when done
+  for(let i=1;i<=plain.length;i++){
+    div.textContent = plain.slice(0,i);
+    agent.scrollTop = agent.scrollHeight;
+    await sleep(8 + Math.random()*18);
+  }
+  div.innerHTML = html;
+  agent.scrollTop = agent.scrollHeight;
+}
+
+async function agentLoop(){
+  append(agent, `<span class="ok">[ agent monitor ]</span> attached to 7 workers`);
+  append(agent, `<span class="dim">────────────────────────────────────</span>`);
+  await sleep(400);
+  while(true){
+    const s = pick(SNIPPETS);
+    append(agent, `<span class="dim">$</span> <span class="key">${s.agent}</span> <span class="dim">(${s.lang})</span> <span class="dim">// ${ts()}</span>`);
+    await sleep(150);
+    for(const ln of s.lines){
+      await typeLine(ln[0]);
+      await sleep(50 + Math.random()*90);
+    }
+    append(agent, `<span class="ok">  ok</span> <span class="dim">exit 0  (${(Math.random()*900+100).toFixed(0)}ms)</span>`);
+    append(agent, "");
+    await sleep(700 + Math.random()*900);
+  }
+}
+
+// ===== [03] HEX DUMP (slow) =====
+function hexLine(off){
+  const bytes = [];
+  for(let i=0;i<16;i++) bytes.push(Math.floor(Math.random()*256));
+  const bs = bytes.map(b=>{
+    const h = pad(b.toString(16),2);
+    const hot = b>0xf0 || b<0x10;
+    return `<span class="hex-byte${hot?' hot':''}">${h}</span>`;
+  });
+  const left = bs.slice(0,8).join(" ");
+  const right = bs.slice(8,16).join(" ");
+  const ascii = bytes.map(b=>(b>=32&&b<127)?String.fromCharCode(b):".").join("");
+  return `<span class="hex-off">${pad(off.toString(16),8)}</span>  ${left}  ${right}  <span class="hex-ascii">|${ascii}|</span>`;
+}
+let hexOff = 0;
+async function hexLoop(){
+  while(true){
+    append(hex, hexLine(hexOff), 30);
+    hexOff = (hexOff + 16) & 0xffffff;
+    await sleep(700 + Math.random()*500);
+  }
+}
+
+// ===== [04] DOS SERVER TERMINAL (idle, occasional activity) =====
+const DOS_EVENTS = [
+  () => [`<span class="dos-d">[${dts()}]</span> <span class="dos-g">sshd</span>: accepted connection from 10.7.0.${Math.floor(Math.random()*254+1)}`],
+  () => [`<span class="dos-d">[${dts()}]</span> <span class="dos-g">cron</span>: rotate /var/log/edge.log`],
+  () => [`<span class="dos-d">[${dts()}]</span> <span class="dos-y">syslog</span>: disk usage 47% (sda1)`],
+  () => [`<span class="dos-d">[${dts()}]</span> <span class="dos-g">backup</span>: snapshot complete  308 MB`],
+  () => [
+    `<span class="dos-d">[${dts()}]</span> <span class="dos-g">heartbeat</span>: seven-core OK  4ms`,
+    `<span class="dos-d">[${dts()}]</span> <span class="dos-g">heartbeat</span>: vault       OK  3ms`,
+    `<span class="dos-d">[${dts()}]</span> <span class="dos-g">heartbeat</span>: edge-03     OK  5ms`
+  ],
+  () => [`<span class="dos-d">[${dts()}]</span> <span class="dos-y">net</span>: link link-2 jitter ${Math.floor(Math.random()*30+8)}ms`],
+  () => [`<span class="dos-d">[${dts()}]</span> <span class="dos-r">audit</span>: failed login attempt (root) from 185.${Math.floor(Math.random()*255)}.x.x  blocked`]
+];
+function dts(){
+  const d = new Date();
+  return pad(d.getHours(),2)+":"+pad(d.getMinutes(),2)+":"+pad(d.getSeconds(),2);
+}
+
+async function dosLoop(){
+  append(dos, `<span class="dos-w">Microsoft(R) MS-DOS(R) Version 6.22</span>`);
+  append(dos, `<span class="dos-w">(C)Copyright Microsoft Corp 1981-1994.</span>`);
+  append(dos, ``);
+  append(dos, `<span class="dos-y">srv-edge-03</span> <span class="dos-d">login:</span> <span class="dos-w">operator</span>`);
+  append(dos, `<span class="dos-d">Last login: Wed May 13 02:14:03 from 10.7.0.4</span>`);
+  append(dos, ``);
+  append(dos, `<span class="dos-w">System status:</span> <span class="dos-g">nominal</span>`);
+  append(dos, `<span class="dos-w">Uptime:</span> <span class="dos-y">47 days, 03:21:18</span>`);
+  append(dos, `<span class="dos-w">Load:</span> <span class="dos-y">0.34  0.41  0.38</span>`);
+  append(dos, ``);
+  append(dos, `<span class="dos-g">C:\\&gt;</span> <span class="blink">_</span>`);
+  while(true){
+    await sleep(3500 + Math.random()*5500);
+    // remove the blinking prompt placeholder
+    if(dos.lastChild && dos.lastChild.innerHTML.includes('blink')) dos.removeChild(dos.lastChild);
+    const evt = pick(DOS_EVENTS)();
+    for(const line of evt){
+      append(dos, line, 80);
+      await sleep(220 + Math.random()*380);
+    }
+    // re-add the waiting prompt
+    append(dos, ``, 80);
+    append(dos, `<span class="dos-g">C:\\&gt;</span> <span class="blink">_</span>`, 80);
+  }
+}
+
+// ===== CLOCK =====
+function tickClock(){
+  const d = new Date();
+  clock.textContent = d.toISOString().replace('T',' ').replace('Z',' UTC');
+}
+setInterval(tickClock, 1000);
+tickClock();
+
+logLoop();
+agentLoop();
+hexLoop();
+dosLoop();
+</script>
+</body>
+</html>
