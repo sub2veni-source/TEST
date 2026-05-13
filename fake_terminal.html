@@ -15,7 +15,7 @@
   #wrap {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: 28px 6fr 4fr;
+    grid-template-rows: 28px 7fr 3fr;
     height: 100vh;
     gap: 2px;
     background: #0a0a0a;
@@ -71,7 +71,14 @@
   .fn    { color: #50fa7b; }
   .blink { animation: blink 1s steps(2) infinite; }
   @keyframes blink { 50% { opacity: 0; } }
-  .scroll { height: calc(100% - 30px); overflow: hidden; }
+  .scroll {
+    height: calc(100% - 30px);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+  .scroll > * { flex-shrink: 0; }
 
   /* DOS server panel */
   .dos {
@@ -90,7 +97,15 @@
     letter-spacing: 1px;
     display: flex; justify-content: space-between;
   }
-  .dos .scroll { padding: 8px 10px; height: calc(100% - 26px); font-size: 12.5px; line-height: 1.45; }
+  .dos .scroll {
+    padding: 8px 10px;
+    height: calc(100% - 26px);
+    font-size: 12.5px;
+    line-height: 1.45;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
   .dos-y { color: #ffff55; }
   .dos-w { color: #ffffff; }
   .dos-c { color: #55ffff; }
