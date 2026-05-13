@@ -13,14 +13,14 @@
   }
   #wrap {
     display: grid;
-    grid-template-columns: 2fr 1.2fr;
-    grid-template-rows: 28px 1fr 110px;
+    grid-template-columns: 1.6fr 1fr 1fr;
+    grid-template-rows: 28px 1.4fr 1fr 130px;
     height: 100vh;
     gap: 2px;
     background: #0a0a0a;
   }
   .bar {
-    grid-column: 1 / 3;
+    grid-column: 1 / 4;
     background: linear-gradient(90deg,#001a0d,#000);
     color: #6cff6c;
     font-size: 12px;
@@ -46,11 +46,21 @@
     letter-spacing: 2px;
     border-bottom: 1px dashed #004433;
     padding-bottom: 3px;
+    display: flex; justify-content: space-between;
   }
+  .panel h3 .led { color: #00ff66; }
+  #main-panel  { grid-column: 1 / 2; grid-row: 2 / 4; }
+  #side-panel  { grid-column: 2 / 3; grid-row: 2 / 3; }
+  #graph-panel { grid-column: 2 / 3; grid-row: 3 / 4; }
+  #map-panel   { grid-column: 3 / 4; grid-row: 2 / 3; }
+  #stack-panel { grid-column: 3 / 4; grid-row: 3 / 4; }
   #main { color: #b8ffcc; }
   #side { color: #88ddff; font-size: 11.5px; }
+  #stack { color: #ffaa88; font-size: 11px; }
+  #map { color: #66ffaa; font-size: 10.5px; line-height: 1.05; letter-spacing: 1px; }
+  #graph-area { color: #66ddff; font-size: 11px; line-height: 1.05; }
   #bottom {
-    grid-column: 1 / 3;
+    grid-column: 1 / 4;
     background: #000;
     border-top: 1px solid #003322;
     padding: 6px 12px;
@@ -62,19 +72,21 @@
   .ok    { color: #00ff88; }
   .warn  { color: #ffcc33; }
   .err   { color: #ff4466; }
+  .crit  { color: #ff2244; background: #330011; padding: 0 4px; }
   .dim   { color: #557766; }
   .key   { color: #66ddff; }
   .num   { color: #ffaa55; }
+  .hash  { color: #cc88ff; }
   .blink { animation: blink 1s steps(2) infinite; }
+  .flash { animation: flash 0.3s ease-out; }
   @keyframes blink { 50% { opacity: 0; } }
+  @keyframes flash {
+    0%   { background: #00ff88; color: #000; }
+    100% { background: transparent; }
+  }
   .scroll {
     height: calc(100% - 22px);
     overflow: hidden;
-  }
-  .cursor::after {
-    content: "▌";
-    color: #00ff88;
-    animation: blink 1s steps(2) infinite;
   }
 </style>
 </head>
@@ -83,17 +95,32 @@
   <div class="bar">
     <span>SEVEN // OPS CONSOLE  v4.7.1  [secure-tty]</span>
     <span id="clock"></span>
-    <span>NODE: kr-seoul-03   UPLINK: <span class="ok">OK</span></span>
+    <span>NODE: kr-seoul-03   UPLINK: <span class="ok">OK</span>   THREAT: <span id="threat" class="ok">GREEN</span></span>
   </div>
 
   <div class="panel" id="main-panel">
-    <h3>[01] MAIN PROCESS STREAM</h3>
+    <h3><span>[01] MAIN PROCESS STREAM</span><span class="led blink">●</span></h3>
     <div class="scroll" id="main"></div>
   </div>
 
   <div class="panel" id="side-panel">
-    <h3>[02] AGENT TELEMETRY</h3>
+    <h3><span>[02] AGENT TELEMETRY</span><span class="led">●</span></h3>
     <div class="scroll" id="side"></div>
+  </div>
+
+  <div class="panel" id="graph-panel">
+    <h3><span>[03] AUM DELTA / LATENCY</span><span class="led">●</span></h3>
+    <div class="scroll" id="graph-area"></div>
+  </div>
+
+  <div class="panel" id="map-panel">
+    <h3><span>[04] GLOBAL NODE MAP</span><span class="led blink">●</span></h3>
+    <div class="scroll" id="map"></div>
+  </div>
+
+  <div class="panel" id="stack-panel">
+    <h3><span>[05] STACK / DEBUG</span><span class="led">●</span></h3>
+    <div class="scroll" id="stack"></div>
   </div>
 
   <div id="bottom">
@@ -104,45 +131,46 @@
 <script>
 const main = document.getElementById('main');
 const side = document.getElementById('side');
+const stack = document.getElementById('stack');
+const mapEl = document.getElementById('map');
+const graphArea = document.getElementById('graph-area');
 const status = document.getElementById('status');
 const clock = document.getElementById('clock');
+const threat = document.getElementById('threat');
 
 const FILES = [
-  "core/equilibrium.engine.ts",
-  "ops/portfolio_balancer.py",
-  "intel/asset_tracker.rs",
-  "net/uplink_handler.go",
-  "crypto/wallet_sweep.sol",
-  "modules/seven_mind.dll",
-  "data/k_assets_2026Q2.parquet",
-  "logs/lia_building_sensors.log",
-  "agent/whitmore_us.bin",
-  "agent/charlie_us.bin",
-  "agent/lee_kr.bin",
-  "router/edge_node_03.conf",
-  "schedules/arc_2026_06.yml",
-  "vault/identity_keychain.enc"
+  "core/equilibrium.engine.ts","ops/portfolio_balancer.py","intel/asset_tracker.rs",
+  "net/uplink_handler.go","crypto/wallet_sweep.sol","modules/seven_mind.dll",
+  "data/k_assets_2026Q2.parquet","logs/lia_building_sensors.log",
+  "agent/whitmore_us.bin","agent/charlie_us.bin","agent/lee_kr.bin",
+  "router/edge_node_03.conf","schedules/arc_2026_06.yml","vault/identity_keychain.enc",
+  "hedge/fx_swap_kor_usd.py","scan/dark_pool_routing.cpp","ml/risk_lstm_v7.pt"
 ];
-
 const TASKS = [
-  "rebalance position",
-  "scan dark pool tickers",
-  "verify wallet signature",
-  "compile asset delta",
-  "encrypt outbound packet",
-  "rotate access keys",
-  "sync replication node",
-  "build narrative index",
-  "stream sensor batch",
-  "fingerprint counterparty",
-  "patch kernel module",
-  "flush transaction queue",
-  "calibrate risk model",
-  "fork worker thread",
-  "snapshot state graph"
+  "rebalance position","scan dark pool tickers","verify wallet signature",
+  "compile asset delta","encrypt outbound packet","rotate access keys",
+  "sync replication node","build narrative index","stream sensor batch",
+  "fingerprint counterparty","patch kernel module","flush transaction queue",
+  "calibrate risk model","fork worker thread","snapshot state graph",
+  "negotiate FX bracket","trigger hedge unwind","resolve cross-chain bridge"
 ];
-
-const AGENTS = ["whitmore","charlie","leejc","park","michael","seven-core","edge-03","vault"];
+const AGENTS = ["whitmore","charlie","leejc","park","michael","seven-core","edge-03","vault","mind-7"];
+const REGIONS = [
+  ["SEL","37.5°N 127.0°E"],["NYC","40.7°N 074.0°W"],["LON","51.5°N 000.1°W"],
+  ["TKY","35.6°N 139.6°E"],["SGP","01.3°N 103.8°E"],["FRA","50.1°N 008.6°E"],
+  ["HKG","22.3°N 114.1°E"],["DXB","25.2°N 055.2°E"]
+];
+const STACK_FRAMES = [
+  "at EquilibriumEngine.tick (equilibrium.engine.ts:412)",
+  "at PortfolioBalancer.rebalance (portfolio_balancer.py:88)",
+  "at AssetTracker::sync (asset_tracker.rs:233)",
+  "at UplinkHandler.send (uplink_handler.go:154)",
+  "at WalletSweep.execute (wallet_sweep.sol:67)",
+  "at SevenMind::infer (seven_mind.dll:0x7ffaa12c)",
+  "at RiskLSTM.forward (risk_lstm_v7.pt:layer_19)",
+  "at DarkPool::route (dark_pool_routing.cpp:301)",
+  "at FxSwap.bracket (fx_swap_kor_usd.py:142)"
+];
 
 const HEX = "0123456789abcdef";
 function hex(n){ let s=""; for(let i=0;i<n;i++) s+=HEX[Math.floor(Math.random()*16)]; return s; }
@@ -152,66 +180,200 @@ function ts(){
   const d = new Date();
   return pad(d.getHours(),2)+":"+pad(d.getMinutes(),2)+":"+pad(d.getSeconds(),2)+"."+pad(d.getMilliseconds(),3);
 }
-
-function appendLine(el, html, maxLines=200){
+function append(el, html, maxLines=240){
   const div = document.createElement('div');
   div.innerHTML = html;
   el.appendChild(div);
   while(el.childNodes.length > maxLines) el.removeChild(el.firstChild);
   el.scrollTop = el.scrollHeight;
+  return div;
+}
+function flash(el){
+  el.classList.add('flash');
+  setTimeout(()=>el.classList.remove('flash'), 320);
+}
+
+// ----- BURST CONTROLLER -----
+// Variable cadence: idle → normal → burst → spike, with stack trace events
+let mode = "normal";
+let modeTimer = 0;
+function pickMode(){
+  const r = Math.random();
+  if(r < 0.10) return ["idle",  1500 + Math.random()*2000];
+  if(r < 0.55) return ["normal",2500 + Math.random()*3000];
+  if(r < 0.85) return ["burst", 1200 + Math.random()*1800];
+  return            ["spike",   600  + Math.random()*900 ];
+}
+function mainDelay(){
+  switch(mode){
+    case "idle":   return 380 + Math.random()*420;
+    case "normal": return 120 + Math.random()*180;
+    case "burst":  return 35  + Math.random()*70;
+    case "spike":  return 12  + Math.random()*28;
+  }
+}
+
+function maybeStackTrace(){
+  const lines = 3 + Math.floor(Math.random()*4);
+  append(stack, `<span class="err">!! exception</span> <span class="hash">${hex(8)}</span>  in worker-${Math.floor(Math.random()*32)}`);
+  for(let i=0;i<lines;i++){
+    append(stack, `  <span class="dim">${pick(STACK_FRAMES)}</span>`);
+  }
+  append(stack, `<span class="warn">→ recovery routed to seven-core</span>`);
+  append(stack, `<span class="dim">─────────────────────────────────────</span>`);
+}
+
+function maybeBigBanner(){
+  const banners = [
+    ['<span class="crit"> CRITICAL </span> margin call detected on edge-07',         "spike"],
+    ['<span class="ok">  COMMIT  </span> equilibrium block #'+hex(6)+' sealed',       "normal"],
+    ['<span class="warn">  ALERT   </span> ml drift > threshold, retraining queued',  "burst"],
+    ['<span class="key">  DEPLOY  </span> rolling out hedge-v7.2 to 12 nodes',        "burst"],
+    ['<span class="crit"> INTRUSION</span> probe blocked from 185.'+Math.floor(Math.random()*255)+'.x.x', "spike"]
+  ];
+  const [msg, forceMode] = pick(banners);
+  const node = append(main, `<span class="dim">[${ts()}]</span> ${msg}`);
+  flash(node);
+  // briefly flip threat indicator on intrusion/critical
+  if(msg.includes("INTRUSION") || msg.includes("CRITICAL")){
+    threat.textContent = "RED";
+    threat.className = "err blink";
+    setTimeout(()=>{ threat.textContent="AMBER"; threat.className="warn"; }, 2500);
+    setTimeout(()=>{ threat.textContent="GREEN"; threat.className="ok"; }, 5500);
+  }
+  return forceMode;
 }
 
 function mainLine(){
   const t = ts();
   const r = Math.random();
+
+  // occasional dramatic banner
+  if(r < 0.02){ const fm = maybeBigBanner(); if(fm){ [mode, modeTimer] = [fm, 1500]; } return; }
+  // occasional stack trace cascade
+  if(r < 0.035){ maybeStackTrace(); return; }
+
   if(r < 0.18){
     const f = pick(FILES);
     const ln = Math.floor(Math.random()*900)+10;
-    appendLine(main, `<span class="dim">[${t}]</span> <span class="key">build</span>  compiling <span class="ok">${f}</span> <span class="dim">:${ln}</span>`);
-  } else if(r < 0.32){
-    appendLine(main, `<span class="dim">[${t}]</span> <span class="key">tx</span>     0x${hex(40)} <span class="num">${(Math.random()*9.99).toFixed(4)} ETH</span> <span class="ok">confirmed</span>`);
-  } else if(r < 0.45){
+    const ms = (Math.random()*30+2).toFixed(1);
+    append(main, `<span class="dim">[${t}]</span> <span class="key">build</span>   <span class="ok">${f}</span><span class="dim">:${ln}</span>  <span class="num">${ms}ms</span>`);
+  } else if(r < 0.30){
+    append(main, `<span class="dim">[${t}]</span> <span class="key">tx</span>      <span class="hash">0x${hex(40)}</span>  <span class="num">${(Math.random()*9.99).toFixed(4)} ETH</span>  <span class="ok">conf</span>`);
+  } else if(r < 0.43){
     const a = pick(AGENTS), task = pick(TASKS);
-    appendLine(main, `<span class="dim">[${t}]</span> <span class="key">agent</span>  ${a} → ${task}`);
-  } else if(r < 0.58){
-    appendLine(main, `<span class="dim">[${t}]</span> <span class="key">net</span>    packet <span class="num">${Math.floor(Math.random()*9000+1000)}b</span> → edge-${pad(Math.floor(Math.random()*9)+1,2)} <span class="ok">200</span>`);
-  } else if(r < 0.68){
-    appendLine(main, `<span class="dim">[${t}]</span> <span class="key">vault</span>  key rotated  fp=<span class="num">${hex(8)}:${hex(8)}:${hex(8)}</span>`);
-  } else if(r < 0.76){
-    appendLine(main, `<span class="dim">[${t}]</span> <span class="key">db</span>     SELECT * FROM assets WHERE owner='K' AND ts > <span class="num">${Date.now()-Math.floor(Math.random()*1e8)}</span> <span class="dim">(${Math.floor(Math.random()*40+1)} rows)</span>`);
-  } else if(r < 0.83){
-    appendLine(main, `<span class="dim">[${t}]</span> <span class="warn">warn</span>   latency spike on link-${Math.floor(Math.random()*8)} <span class="num">${Math.floor(Math.random()*180+20)}ms</span>`);
+    append(main, `<span class="dim">[${t}]</span> <span class="key">agent</span>   ${a.padEnd(11,' ')} → ${task}`);
+  } else if(r < 0.55){
+    const code = Math.random()<0.92 ? '<span class="ok">200</span>' : (Math.random()<0.6 ? '<span class="warn">429</span>' : '<span class="err">503</span>');
+    append(main, `<span class="dim">[${t}]</span> <span class="key">net</span>     ${Math.floor(Math.random()*9000+1000)}b → edge-${pad(Math.floor(Math.random()*9)+1,2)}  ${code}`);
+  } else if(r < 0.65){
+    append(main, `<span class="dim">[${t}]</span> <span class="key">vault</span>   key rot  fp=<span class="hash">${hex(8)}:${hex(8)}:${hex(8)}</span>`);
+  } else if(r < 0.74){
+    append(main, `<span class="dim">[${t}]</span> <span class="key">db</span>      <span class="dim">SELECT * FROM assets WHERE owner='K' LIMIT ${Math.floor(Math.random()*40+1)}</span>  <span class="num">${(Math.random()*8+0.2).toFixed(2)}ms</span>`);
+  } else if(r < 0.82){
+    append(main, `<span class="dim">[${t}]</span> <span class="warn">warn</span>    latency spike link-${Math.floor(Math.random()*8)}  <span class="num">${Math.floor(Math.random()*180+20)}ms</span>`);
   } else if(r < 0.90){
-    appendLine(main, `<span class="dim">[${t}]</span> <span class="key">model</span>  inference batch=<span class="num">${Math.floor(Math.random()*64+8)}</span> loss=<span class="num">${(Math.random()*0.01).toFixed(5)}</span>`);
-  } else if(r < 0.95){
-    appendLine(main, `<span class="dim">[${t}]</span> <span class="err">alert</span>  anomaly detected → routing to seven-core for review`);
+    append(main, `<span class="dim">[${t}]</span> <span class="key">model</span>   batch=<span class="num">${Math.floor(Math.random()*64+8)}</span>  loss=<span class="num">${(Math.random()*0.01).toFixed(5)}</span>  acc=<span class="num">${(0.92+Math.random()*0.07).toFixed(4)}</span>`);
+  } else if(r < 0.94){
+    append(main, `<span class="dim">[${t}]</span> <span class="err">alert</span>   anomaly → seven-core review queued`);
   } else {
-    appendLine(main, `<span class="dim">[${t}]</span> <span class="ok">ok</span>     heartbeat ${hex(16)}`);
+    append(main, `<span class="dim">[${t}]</span> <span class="ok">ok</span>      heartbeat <span class="hash">${hex(16)}</span>`);
   }
 }
 
-function sideLine(){
-  const a = pick(AGENTS);
-  const cpu = (Math.random()*80+10).toFixed(1);
-  const mem = (Math.random()*60+20).toFixed(1);
-  const q   = Math.floor(Math.random()*40);
-  const state = Math.random()<0.85 ? '<span class="ok">RUN</span>' : (Math.random()<0.7 ? '<span class="warn">WAIT</span>' : '<span class="err">RETRY</span>');
-  appendLine(side,
-    `<span class="key">${a.padEnd(10,' ')}</span> ${state}  cpu=<span class="num">${cpu}%</span>  mem=<span class="num">${mem}%</span>  q=<span class="num">${q}</span>`
-  , 60);
+// ----- AGENT TELEMETRY (smoothed over time) -----
+const agentState = AGENTS.map(a=>({
+  name:a, cpu:30+Math.random()*30, mem:30+Math.random()*30, q:5,
+  state:"RUN", stateTimer:0
+}));
+function sideTick(){
+  side.innerHTML = '';
+  for(const s of agentState){
+    // jitter
+    s.cpu = Math.max(2, Math.min(99, s.cpu + (Math.random()-0.5)*8 + (mode==="spike"?6:0)));
+    s.mem = Math.max(10, Math.min(95, s.mem + (Math.random()-0.5)*3));
+    s.q   = Math.max(0, s.q + Math.floor((Math.random()-0.5)*8));
+    if(s.stateTimer-- <= 0){
+      const r = Math.random();
+      s.state = r<0.82 ? "RUN" : (r<0.94 ? "WAIT" : "RETRY");
+      s.stateTimer = Math.floor(Math.random()*8+3);
+    }
+    const stateHtml = s.state==="RUN" ? '<span class="ok">RUN  </span>' : s.state==="WAIT" ? '<span class="warn">WAIT </span>' : '<span class="err">RETRY</span>';
+    const bar = (()=>{ const w=10; const n=Math.floor(s.cpu/10); return "█".repeat(n)+"░".repeat(w-n); })();
+    append(side,
+      `<span class="key">${s.name.padEnd(10,' ')}</span> ${stateHtml}  cpu <span class="num">${s.cpu.toFixed(0).padStart(2,' ')}%</span> <span class="dim">${bar}</span>  mem <span class="num">${s.mem.toFixed(0)}%</span>  q=<span class="num">${s.q}</span>`
+    , 60);
+  }
 }
 
+// ----- SPARKLINE GRAPH -----
+const aumHist = [];
+const latHist = [];
+const W = 56;
+const BLOCKS = ["▁","▂","▃","▄","▅","▆","▇","█"];
+function pushHist(arr, v){ arr.push(v); while(arr.length>W) arr.shift(); }
+function sparkline(arr){
+  if(!arr.length) return "";
+  const mn = Math.min(...arr), mx = Math.max(...arr);
+  const span = mx-mn || 1;
+  return arr.map(v=>BLOCKS[Math.min(7, Math.floor((v-mn)/span*7))]).join("");
+}
+let aum = 15.0234;
+let lat = 14;
+function graphTick(){
+  aum += (Math.random()-0.5)*0.0006;
+  lat = Math.max(4, Math.min(220, lat + (Math.random()-0.5)*8 + (mode==="spike"?12:0)));
+  pushHist(aumHist, aum);
+  pushHist(latHist, lat);
+  graphArea.innerHTML = '';
+  append(graphArea, `<span class="key">AUM</span>  <span class="num">${aum.toFixed(4)}</span>경 KRW`);
+  append(graphArea, `<span class="ok">${sparkline(aumHist)}</span>`);
+  append(graphArea, `<span class="dim">────────────────────────────────────────────────────────</span>`);
+  const latColor = lat<40 ? "ok" : lat<100 ? "warn" : "err";
+  append(graphArea, `<span class="key">LAT</span>  <span class="${latColor}">${lat.toFixed(0)}ms</span>`);
+  append(graphArea, `<span class="${latColor}">${sparkline(latHist)}</span>`);
+}
+
+// ----- WORLD MAP -----
+const baseMap = [
+"   . _ . _ . _ . _ . _ . _ . _ . _ . _ . _ . _ . _ . _ . _ . _ . _ .",
+"   ___   ___ _____  ___    ___ _ _   ___      __    ___ _ ___ _    ",
+" /     \\/   \\\\__  \\/   \\  /   \\\\\\ \\ /   \\___/  \\__/   ↑     \\ ___ \\ ",
+"|  N.AM    |  ATL  |  EU    |  AS   |  PAC  |              |       ",
+" \\___/ ___ \\___ ___ ___/\\___ ___/ _ \\___ ___ ___ _ ___/ _ /___ ___/",
+"     /   \\        /   \\        /   \\        /   \\                  ",
+"    | SA  |      | AFR |      | IND |      | OCE |                 ",
+"     \\___/        \\___/        \\___/        \\___/                  "
+];
+function mapTick(){
+  mapEl.innerHTML = '';
+  for(const line of baseMap) append(mapEl, `<span class="dim">${line}</span>`);
+  append(mapEl, "");
+  for(const [code, coord] of REGIONS){
+    const ms = Math.floor(Math.random()*200+5);
+    const c = Math.random()<0.85 ? "ok" : (Math.random()<0.6 ? "warn" : "err");
+    const blip = Math.random()<0.5 ? "●" : "◉";
+    append(mapEl,
+      `<span class="${c}">${blip}</span> <span class="key">${code}</span> <span class="dim">${coord}</span>  <span class="num">${ms}ms</span>`
+    );
+  }
+}
+
+// ----- BOTTOM STATUS -----
 let progress = 0;
 function statusLine(){
-  progress = (progress + Math.random()*3) % 100;
+  progress = (progress + Math.random()*1.2) % 100;
   const bar = "█".repeat(Math.floor(progress/2.5)) + "░".repeat(40 - Math.floor(progress/2.5));
-  const aum = (15.0234 + (Math.random()-0.5)*0.0008).toFixed(4);
-  const lat = Math.floor(Math.random()*20+8);
+  const phase = progress<25?"PHASE-1":progress<55?"PHASE-2":progress<80?"PHASE-3":"PHASE-4";
+  const modeColor = mode==="spike" ? "err" : mode==="burst" ? "warn" : mode==="idle" ? "dim" : "ok";
   status.innerHTML =
-    `EQUILIBRIUM PROGRESS  [<span class="ok">${bar}</span>] <span class="num">${progress.toFixed(1)}%</span>\n` +
-    `AUM <span class="num">${aum}경 KRW</span>   LAT <span class="num">${lat}ms</span>   AGENTS <span class="ok">${AGENTS.length} online</span>   THREATS <span class="ok">0</span>   <span class="blink">●</span> LIVE`;
+    `EQUILIBRIUM ${phase}  [<span class="ok">${bar}</span>] <span class="num">${progress.toFixed(1)}%</span>\n` +
+    `AUM <span class="num">${aum.toFixed(4)}경 KRW</span>   LAT <span class="num">${lat.toFixed(0)}ms</span>   ` +
+    `AGENTS <span class="ok">${AGENTS.length} online</span>   MODE <span class="${modeColor}">${mode.toUpperCase()}</span>   ` +
+    `THREATS <span class="ok">0</span>   <span class="blink">●</span> LIVE`;
 }
 
+// ----- CLOCK / DRIVER -----
 function tickClock(){
   const d = new Date();
   clock.textContent = d.toISOString().replace('T',' ').replace('Z',' UTC');
@@ -220,16 +382,35 @@ function tickClock(){
 // init banner
 [
   '<span class="ok">SEVEN OPS CONSOLE v4.7.1</span>  © sub2veni-source',
-  '<span class="dim">loading modules ...........</span> <span class="ok">ok</span>',
-  '<span class="dim">attaching agents ..........</span> <span class="ok">ok</span>',
-  '<span class="dim">uplink to kr-seoul-03 .....</span> <span class="ok">ok</span>',
-  '<span class="dim">opening secure tty ........</span> <span class="ok">ok</span>',
-  '<span class="dim">--------------------------------------------------</span>'
-].forEach(l=>appendLine(main,l));
+  '<span class="dim">loading modules ............</span> <span class="ok">ok</span>',
+  '<span class="dim">attaching 9 agents .........</span> <span class="ok">ok</span>',
+  '<span class="dim">uplink to kr-seoul-03 ......</span> <span class="ok">ok</span>',
+  '<span class="dim">opening secure tty .........</span> <span class="ok">ok</span>',
+  '<span class="dim">subscribing equilibrium ....</span> <span class="ok">ok</span>',
+  '<span class="dim">─────────────────────────────────────────────────────</span>'
+].forEach(l=>append(main,l));
 
-setInterval(mainLine, 110);
-setInterval(sideLine, 260);
-setInterval(statusLine, 200);
+// variable-rate scheduler for main stream
+function mainLoop(){
+  mainLine();
+  // sometimes emit a quick burst of 2-5 extra lines in same tick (looks alive)
+  if(mode==="burst" || mode==="spike"){
+    const extra = Math.floor(Math.random()* (mode==="spike"?5:3));
+    for(let i=0;i<extra;i++) mainLine();
+  }
+  // rotate mode
+  modeTimer -= 100;
+  if(modeTimer <= 0){
+    [mode, modeTimer] = pickMode();
+  }
+  setTimeout(mainLoop, mainDelay());
+}
+mainLoop();
+
+setInterval(sideTick, 600);
+setInterval(graphTick, 350);
+setInterval(mapTick, 1400);
+setInterval(statusLine, 220);
 setInterval(tickClock, 500);
 tickClock();
 </script>
