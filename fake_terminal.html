@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>SEVEN // Operations Console</title>
+<style>
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    background: #000;
+    font-family: "Consolas", "Menlo", "Courier New", monospace;
+    color: #00ff88;
+    overflow: hidden;
+  }
+  #wrap {
+    display: grid;
+    grid-template-columns: 2fr 1.2fr;
+    grid-template-rows: 28px 1fr 110px;
+    height: 100vh;
+    gap: 2px;
+    background: #0a0a0a;
+  }
+  .bar {
+    grid-column: 1 / 3;
+    background: linear-gradient(90deg,#001a0d,#000);
+    color: #6cff6c;
+    font-size: 12px;
+    padding: 6px 12px;
+    border-bottom: 1px solid #003322;
+    display: flex; justify-content: space-between;
+    letter-spacing: 1px;
+  }
+  .panel {
+    background: #000;
+    border: 1px solid #003322;
+    overflow: hidden;
+    position: relative;
+    padding: 8px 10px;
+    font-size: 12.5px;
+    line-height: 1.4;
+    white-space: pre;
+  }
+  .panel h3 {
+    margin: 0 0 6px 0;
+    color: #00ffaa;
+    font-size: 11px;
+    letter-spacing: 2px;
+    border-bottom: 1px dashed #004433;
+    padding-bottom: 3px;
+  }
+  #main { color: #b8ffcc; }
+  #side { color: #88ddff; font-size: 11.5px; }
+  #bottom {
+    grid-column: 1 / 3;
+    background: #000;
+    border-top: 1px solid #003322;
+    padding: 6px 12px;
+    color: #ff9966;
+    font-size: 11.5px;
+    overflow: hidden;
+    white-space: pre;
+  }
+  .ok    { color: #00ff88; }
+  .warn  { color: #ffcc33; }
+  .err   { color: #ff4466; }
+  .dim   { color: #557766; }
+  .key   { color: #66ddff; }
+  .num   { color: #ffaa55; }
+  .blink { animation: blink 1s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .scroll {
+    height: calc(100% - 22px);
+    overflow: hidden;
+  }
+  .cursor::after {
+    content: "▌";
+    color: #00ff88;
+    animation: blink 1s steps(2) infinite;
+  }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div class="bar">
+    <span>SEVEN // OPS CONSOLE  v4.7.1  [secure-tty]</span>
+    <span id="clock"></span>
+    <span>NODE: kr-seoul-03   UPLINK: <span class="ok">OK</span></span>
+  </div>
+
+  <div class="panel" id="main-panel">
+    <h3>[01] MAIN PROCESS STREAM</h3>
+    <div class="scroll" id="main"></div>
+  </div>
+
+  <div class="panel" id="side-panel">
+    <h3>[02] AGENT TELEMETRY</h3>
+    <div class="scroll" id="side"></div>
+  </div>
+
+  <div id="bottom">
+    <div id="status"></div>
+  </div>
+</div>
+
+<script>
+const main = document.getElementById('main');
+const side = document.getElementById('side');
+const status = document.getElementById('status');
+const clock = document.getElementById('clock');
+
+const FILES = [
+  "core/equilibrium.engine.ts",
+  "ops/portfolio_balancer.py",
+  "intel/asset_tracker.rs",
+  "net/uplink_handler.go",
+  "crypto/wallet_sweep.sol",
+  "modules/seven_mind.dll",
+  "data/k_assets_2026Q2.parquet",
+  "logs/lia_building_sensors.log",
+  "agent/whitmore_us.bin",
+  "agent/charlie_us.bin",
+  "agent/lee_kr.bin",
+  "router/edge_node_03.conf",
+  "schedules/arc_2026_06.yml",
+  "vault/identity_keychain.enc"
+];
+
+const TASKS = [
+  "rebalance position",
+  "scan dark pool tickers",
+  "verify wallet signature",
+  "compile asset delta",
+  "encrypt outbound packet",
+  "rotate access keys",
+  "sync replication node",
+  "build narrative index",
+  "stream sensor batch",
+  "fingerprint counterparty",
+  "patch kernel module",
+  "flush transaction queue",
+  "calibrate risk model",
+  "fork worker thread",
+  "snapshot state graph"
+];
+
+const AGENTS = ["whitmore","charlie","leejc","park","michael","seven-core","edge-03","vault"];
+
+const HEX = "0123456789abcdef";
+function hex(n){ let s=""; for(let i=0;i<n;i++) s+=HEX[Math.floor(Math.random()*16)]; return s; }
+function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
+function pad(n,w){ n=String(n); while(n.length<w) n="0"+n; return n; }
+function ts(){
+  const d = new Date();
+  return pad(d.getHours(),2)+":"+pad(d.getMinutes(),2)+":"+pad(d.getSeconds(),2)+"."+pad(d.getMilliseconds(),3);
+}
+
+function appendLine(el, html, maxLines=200){
+  const div = document.createElement('div');
+  div.innerHTML = html;
+  el.appendChild(div);
+  while(el.childNodes.length > maxLines) el.removeChild(el.firstChild);
+  el.scrollTop = el.scrollHeight;
+}
+
+function mainLine(){
+  const t = ts();
+  const r = Math.random();
+  if(r < 0.18){
+    const f = pick(FILES);
+    const ln = Math.floor(Math.random()*900)+10;
+    appendLine(main, `<span class="dim">[${t}]</span> <span class="key">build</span>  compiling <span class="ok">${f}</span> <span class="dim">:${ln}</span>`);
+  } else if(r < 0.32){
+    appendLine(main, `<span class="dim">[${t}]</span> <span class="key">tx</span>     0x${hex(40)} <span class="num">${(Math.random()*9.99).toFixed(4)} ETH</span> <span class="ok">confirmed</span>`);
+  } else if(r < 0.45){
+    const a = pick(AGENTS), task = pick(TASKS);
+    appendLine(main, `<span class="dim">[${t}]</span> <span class="key">agent</span>  ${a} → ${task}`);
+  } else if(r < 0.58){
+    appendLine(main, `<span class="dim">[${t}]</span> <span class="key">net</span>    packet <span class="num">${Math.floor(Math.random()*9000+1000)}b</span> → edge-${pad(Math.floor(Math.random()*9)+1,2)} <span class="ok">200</span>`);
+  } else if(r < 0.68){
+    appendLine(main, `<span class="dim">[${t}]</span> <span class="key">vault</span>  key rotated  fp=<span class="num">${hex(8)}:${hex(8)}:${hex(8)}</span>`);
+  } else if(r < 0.76){
+    appendLine(main, `<span class="dim">[${t}]</span> <span class="key">db</span>     SELECT * FROM assets WHERE owner='K' AND ts > <span class="num">${Date.now()-Math.floor(Math.random()*1e8)}</span> <span class="dim">(${Math.floor(Math.random()*40+1)} rows)</span>`);
+  } else if(r < 0.83){
+    appendLine(main, `<span class="dim">[${t}]</span> <span class="warn">warn</span>   latency spike on link-${Math.floor(Math.random()*8)} <span class="num">${Math.floor(Math.random()*180+20)}ms</span>`);
+  } else if(r < 0.90){
+    appendLine(main, `<span class="dim">[${t}]</span> <span class="key">model</span>  inference batch=<span class="num">${Math.floor(Math.random()*64+8)}</span> loss=<span class="num">${(Math.random()*0.01).toFixed(5)}</span>`);
+  } else if(r < 0.95){
+    appendLine(main, `<span class="dim">[${t}]</span> <span class="err">alert</span>  anomaly detected → routing to seven-core for review`);
+  } else {
+    appendLine(main, `<span class="dim">[${t}]</span> <span class="ok">ok</span>     heartbeat ${hex(16)}`);
+  }
+}
+
+function sideLine(){
+  const a = pick(AGENTS);
+  const cpu = (Math.random()*80+10).toFixed(1);
+  const mem = (Math.random()*60+20).toFixed(1);
+  const q   = Math.floor(Math.random()*40);
+  const state = Math.random()<0.85 ? '<span class="ok">RUN</span>' : (Math.random()<0.7 ? '<span class="warn">WAIT</span>' : '<span class="err">RETRY</span>');
+  appendLine(side,
+    `<span class="key">${a.padEnd(10,' ')}</span> ${state}  cpu=<span class="num">${cpu}%</span>  mem=<span class="num">${mem}%</span>  q=<span class="num">${q}</span>`
+  , 60);
+}
+
+let progress = 0;
+function statusLine(){
+  progress = (progress + Math.random()*3) % 100;
+  const bar = "█".repeat(Math.floor(progress/2.5)) + "░".repeat(40 - Math.floor(progress/2.5));
+  const aum = (15.0234 + (Math.random()-0.5)*0.0008).toFixed(4);
+  const lat = Math.floor(Math.random()*20+8);
+  status.innerHTML =
+    `EQUILIBRIUM PROGRESS  [<span class="ok">${bar}</span>] <span class="num">${progress.toFixed(1)}%</span>\n` +
+    `AUM <span class="num">${aum}경 KRW</span>   LAT <span class="num">${lat}ms</span>   AGENTS <span class="ok">${AGENTS.length} online</span>   THREATS <span class="ok">0</span>   <span class="blink">●</span> LIVE`;
+}
+
+function tickClock(){
+  const d = new Date();
+  clock.textContent = d.toISOString().replace('T',' ').replace('Z',' UTC');
+}
+
+// init banner
+[
+  '<span class="ok">SEVEN OPS CONSOLE v4.7.1</span>  © sub2veni-source',
+  '<span class="dim">loading modules ...........</span> <span class="ok">ok</span>',
+  '<span class="dim">attaching agents ..........</span> <span class="ok">ok</span>',
+  '<span class="dim">uplink to kr-seoul-03 .....</span> <span class="ok">ok</span>',
+  '<span class="dim">opening secure tty ........</span> <span class="ok">ok</span>',
+  '<span class="dim">--------------------------------------------------</span>'
+].forEach(l=>appendLine(main,l));
+
+setInterval(mainLine, 110);
+setInterval(sideLine, 260);
+setInterval(statusLine, 200);
+setInterval(tickClock, 500);
+tickClock();
+</script>
+</body>
+</html>
