@@ -11,10 +11,11 @@
     color: #00ff88;
     overflow: hidden;
   }
+  *, *::before, *::after { box-sizing: border-box; }
   #wrap {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: 28px 1fr 1fr;
+    grid-template-rows: 28px 6fr 4fr;
     height: 100vh;
     gap: 2px;
     background: #0a0a0a;
@@ -70,7 +71,7 @@
   .fn    { color: #50fa7b; }
   .blink { animation: blink 1s steps(2) infinite; }
   @keyframes blink { 50% { opacity: 0; } }
-  .scroll { height: calc(100% - 22px); overflow: hidden; }
+  .scroll { height: calc(100% - 30px); overflow: hidden; }
 
   /* DOS server panel */
   .dos {
@@ -89,7 +90,7 @@
     letter-spacing: 1px;
     display: flex; justify-content: space-between;
   }
-  .dos .scroll { padding: 8px 10px; height: calc(100% - 22px); font-size: 12.5px; line-height: 1.45; }
+  .dos .scroll { padding: 8px 10px; height: calc(100% - 26px); font-size: 12.5px; line-height: 1.45; }
   .dos-y { color: #ffff55; }
   .dos-w { color: #ffffff; }
   .dos-c { color: #55ffff; }
@@ -289,7 +290,7 @@ async function typeLine(html){
   for(let i=1;i<=plain.length;i++){
     div.textContent = plain.slice(0,i);
     agent.scrollTop = agent.scrollHeight;
-    await sleep(28 + Math.random()*55);
+    await sleep(8 + Math.random()*18);
   }
   div.innerHTML = html;
   agent.scrollTop = agent.scrollHeight;
@@ -298,18 +299,18 @@ async function typeLine(html){
 async function agentLoop(){
   append(agent, `<span class="ok">[ agent monitor ]</span> attached to 7 workers`);
   append(agent, `<span class="dim">────────────────────────────────────</span>`);
-  await sleep(800);
+  await sleep(400);
   while(true){
     const s = pick(SNIPPETS);
     append(agent, `<span class="dim">$</span> <span class="key">${s.agent}</span> <span class="dim">(${s.lang})</span> <span class="dim">// ${ts()}</span>`);
-    await sleep(400);
+    await sleep(150);
     for(const ln of s.lines){
       await typeLine(ln[0]);
-      await sleep(180 + Math.random()*260);
+      await sleep(50 + Math.random()*90);
     }
     append(agent, `<span class="ok">  ok</span> <span class="dim">exit 0  (${(Math.random()*900+100).toFixed(0)}ms)</span>`);
     append(agent, "");
-    await sleep(1800 + Math.random()*2200);
+    await sleep(700 + Math.random()*900);
   }
 }
 
